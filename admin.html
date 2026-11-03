@@ -18,41 +18,183 @@
             --text-muted: #777799;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-        body { background: var(--bg-gradient); color: var(--text-main); height: 100vh; overflow: hidden; }
-
-        #login-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(4, 4, 7, 0.96); display: flex; justify-content: center; align-items: center; z-index: 9999;
+        body.theme-cyan {
+            --accent-color: #00f3ff;
+            --accent-hover: #33f6ff;
+            --accent-glow: rgba(0, 243, 255, 0.3);
+            --bg-gradient: radial-gradient(circle at 50% 0%, #041820 0%, #020608 100%);
+            --card-bg: #061014;
+            --card-border: #0d222a;
+            --input-bg: #0a1820;
+            --input-border: #14303d;
         }
-        .login-card { background: var(--card-bg); border: 1px solid var(--accent-color); border-radius: 14px; padding: 40px; width: 360px; text-align: center; }
-        .login-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; color: var(--accent-color); }
-        .login-card input { width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--accent-color); padding: 12px; border-radius: 8px; margin-bottom: 15px; outline: none; text-align: center; }
-        .login-card button { width: 100%; background: var(--accent-color); color: #fff; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; }
 
+        body.theme-crimson {
+            --accent-color: #ff0055;
+            --accent-hover: #ff3377;
+            --accent-glow: rgba(255, 0, 85, 0.3);
+            --bg-gradient: radial-gradient(circle at 50% 0%, #20040d 0%, #080204 100%);
+            --card-bg: #14060a;
+            --card-border: #2b0d16;
+            --input-bg: #1f0910;
+            --input-border: #3d1222;
+        }
+
+        body.theme-gold {
+            --accent-color: #ffaa00;
+            --accent-hover: #ffbb33;
+            --accent-glow: rgba(255, 170, 0, 0.3);
+            --bg-gradient: radial-gradient(circle at 50% 0%, #201504 0%, #080502 100%);
+            --card-bg: #140e06;
+            --card-border: #2b1f0d;
+            --input-bg: #1f1509;
+            --input-border: #3d2b12;
+        }
+
+        body.theme-matrix {
+            --accent-color: #00ff66;
+            --accent-hover: #33ff85;
+            --accent-glow: rgba(0, 255, 102, 0.3);
+            --bg-gradient: radial-gradient(circle at 50% 0%, #04200d 0%, #020804 100%);
+            --card-bg: #06140a;
+            --card-border: #0d2b16;
+            --input-bg: #0a1f10;
+            --input-border: #143d20;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        
+        body { 
+            background: var(--bg-gradient);
+            color: var(--text-main); 
+            height: 100vh; 
+            overflow: hidden; 
+            transition: all 0.3s ease;
+        }
+
+        @keyframes subtleGlow {
+            0% { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
+            50% { border-color: var(--accent-hover); box-shadow: 0 0 20px var(--accent-glow); }
+            100% { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
+        }
+
+        /* LOGIN OVERLAY */
+        #login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(4, 4, 7, 0.96);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(12px);
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border: 1px solid var(--accent-color);
+            border-radius: 14px;
+            padding: 40px;
+            width: 360px;
+            text-align: center;
+            animation: subtleGlow 8s infinite;
+        }
+
+        .login-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; color: var(--accent-color); letter-spacing: 2px; }
+        .login-card p { font-size: 11px; color: #666688; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .login-card .fixed-user {
+            background: var(--input-bg); border: 1px solid var(--input-border);
+            color: var(--text-muted); padding: 12px 16px; border-radius: 8px; font-size: 13px;
+            margin-bottom: 15px; font-family: monospace; text-align: center;
+        }
+
+        .login-card input {
+            width: 100%; background: var(--input-bg); border: 1px solid var(--input-border);
+            color: var(--accent-color); padding: 12px 16px; border-radius: 8px; font-size: 13px;
+            margin-bottom: 15px; outline: none; text-align: center;
+        }
+
+        .login-card button {
+            width: 100%; background: var(--accent-color); color: #ffffff; border: none; padding: 12px;
+            font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 13px; text-transform: uppercase;
+        }
+
+        .login-card button:hover { background: var(--accent-hover); box-shadow: 0 0 15px var(--accent-glow); }
+        #login-error { color: #ff4455; font-size: 11px; margin-top: 12px; font-family: monospace; font-weight: bold; }
+
+        /* HAUPT CONTAINER */
         #app-container { display: none; height: 100vh; display: flex; }
-        sidebar { width: 280px; background: rgba(7, 6, 12, 0.85); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; padding: 22px 16px; }
-        .logo { font-size: 18px; font-weight: 900; margin-bottom: 25px; color: var(--accent-color); letter-spacing: 2px; }
-        .nav-btn { background: transparent; border: 1px solid transparent; color: #777799; text-align: left; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; margin-bottom: 4px; width: 100%; }
+
+        sidebar { 
+            width: 280px; background: rgba(7, 6, 12, 0.85); border-right: 1px solid var(--card-border); 
+            display: flex; flex-direction: column; padding: 22px 16px; overflow-y: auto; 
+        }
+
+        .logo { font-size: 18px; font-weight: 900; margin-bottom: 25px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-color); padding-left: 8px; }
+        .nav-category { font-size: 10px; color: #555577; text-transform: uppercase; margin: 16px 0 6px 10px; font-weight: 700; letter-spacing: 1px; }
+
+        .nav-btn { 
+            background: transparent; border: 1px solid transparent; color: #777799; text-align: left; 
+            padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; 
+            margin-bottom: 4px; transition: 0.2s; width: 100%; 
+        }
+
         .nav-btn:hover, .nav-btn.active { background: var(--input-bg); color: var(--accent-color); border-color: var(--input-border); }
 
         main { flex: 1; padding: 30px; overflow-y: auto; }
+
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 16px; margin-bottom: 22px; }
+        h1 { font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .header-controls { display: flex; gap: 12px; align-items: center; }
+        .theme-selector, .lang-selector { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); padding: 6px 12px; border-radius: 8px; font-size: 12px; outline: none; cursor: pointer; }
+        .status-badge { background: var(--input-bg); border: 1px solid var(--accent-color); padding: 6px 14px; border-radius: 20px; font-size: 11px; color: var(--accent-color); font-family: monospace; font-weight: bold; }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
+
         .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-        .card h2 { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
+        .card h2 { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
+
+        label { display: block; font-size: 10px; color: #666688; margin-bottom: 5px; font-weight: 700; text-transform: uppercase; }
+        
+        input, select, textarea { 
+            width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); 
+            color: var(--accent-color); padding: 9px 12px; border-radius: 6px; font-size: 12px; 
+            margin-bottom: 12px; outline: none; transition: 0.2s;
+        }
+
+        button { background: var(--accent-color); color: #ffffff; border: none; padding: 9px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        button:hover { background: var(--accent-hover); box-shadow: 0 0 10px var(--accent-glow); }
+
+        .btn-secondary { background: var(--input-bg); color: #ccccdd; border: 1px solid var(--input-border); }
 
         table { width: 100%; border-collapse: collapse; margin-top: 5px; }
         th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--card-border); font-size: 11px; }
         th { color: #666688; text-transform: uppercase; font-size: 9px; }
         td { color: #aaaacc; font-family: monospace; }
-        tr.user-row { cursor: pointer; }
+        tr.user-row { cursor: pointer; transition: background 0.2s; }
         tr.user-row:hover { background: var(--input-bg); }
+
+        .stats-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; padding: 14px; text-align: center; }
+        .stats-num { font-size: 22px; font-weight: bold; color: var(--accent-color); font-family: monospace; margin-top: 4px; }
 
         /* MODAL */
         #user-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(2, 2, 5, 0.9); display: none; justify-content: center; align-items: center; z-index: 10000;
+            background: rgba(2, 2, 5, 0.9); display: none; justify-content: center; align-items: center;
+            z-index: 10000; backdrop-filter: blur(10px);
         }
-        .modal-card { background: var(--card-bg); border: 1px solid var(--accent-color); border-radius: 14px; width: 900px; max-height: 95vh; overflow-y: auto; padding: 25px; }
+
+        .modal-card {
+            background: var(--card-bg); border: 1px solid var(--accent-color); border-radius: 14px;
+            width: 900px; max-height: 95vh; overflow-y: auto; padding: 25px; box-shadow: 0 0 30px var(--accent-glow);
+        }
+
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; margin-bottom: 18px; }
         .modal-title { font-size: 16px; font-weight: bold; color: var(--accent-color); font-family: monospace; }
         .close-modal { cursor: pointer; font-size: 18px; color: #ff5555; font-weight: bold; }
@@ -63,44 +205,63 @@
         .modal-tab-pane { display: none; }
         .modal-tab-pane.active { display: block; }
 
+        .msinfo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-family: monospace; font-size: 11px; }
+        .msinfo-item { background: var(--input-bg); border: 1px solid var(--input-border); padding: 10px; border-radius: 6px; }
+        .msinfo-item span { color: var(--text-muted); display: block; font-size: 9px; text-transform: uppercase; margin-bottom: 4px; }
+        .msinfo-item strong { color: var(--text-main); font-size: 11px; word-break: break-all; }
+
         /* STREAM STEUERUNG */
         .stream-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; background: var(--input-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--input-border); }
         .stream-controls select, .stream-controls button { margin-bottom: 0; padding: 6px 12px; font-size: 11px; }
-        .screen-stream-box { background: #020204; border: 1px solid var(--accent-color); border-radius: 8px; height: 420px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; }
+        .screen-stream-box {
+            background: #020204; border: 1px solid var(--accent-color); border-radius: 8px; height: 420px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden;
+        }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN -->
+    <!-- LOGIN SCREEN -->
     <div id="login-overlay">
         <div class="login-card">
             <h2>ASSMAR00</h2>
-            <p style="font-size: 11px; color: #666; margin-bottom: 20px;">Eingeschränkter Admin-Zugriff</p>
+            <p id="txt-restricted">Eingeschränkter Admin-Zugriff</p>
+            <div class="fixed-user">👤 Assmar00</div>
             <input type="password" id="pass-input" placeholder="Passwort eingeben...">
-            <button onclick="checkLogin()">Zugriff Gewähren</button>
-            <div id="login-error" style="color:#ff4455; font-size:11px; margin-top:10px;"></div>
+            <button onclick="checkLogin()" id="btn-login">Zugriff Gewähren</button>
+            <div id="login-error"></div>
         </div>
     </div>
 
-    <!-- MODAL -->
+    <!-- USER MSINFO32 & LIVE SCREEN MODAL -->
     <div id="user-modal">
-        <div class="modal-card" id="modal-box-container">
+        <div class="modal-card">
             <div class="modal-header">
-                <div class="modal-title" id="m-user-title">SYSTEM INSPECTOR</div>
+                <div class="modal-title" id="m-user-title">SYSTEM INSPECTOR // USER_UNKNOWN</div>
                 <div class="close-modal" onclick="closeUserModal()">✕</div>
             </div>
 
             <div class="modal-tabs">
-                <button class="modal-tab-btn active" onclick="switchModalTab('info', this)">💻 System Info</button>
-                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)">🔴 Live Screen View</button>
+                <button class="modal-tab-btn active" onclick="switchModalTab('info', this)" id="mtab-info">💻 System Info (msinfo32)</button>
+                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)" id="mtab-stream">🔴 Live Screen View</button>
             </div>
 
             <div id="modal-tab-info" class="modal-tab-pane active">
-                <p id="m-cpu" style="font-family:monospace; color:#aaa;">Lade System-Informationen...</p>
+                <div class="msinfo-grid">
+                    <div class="msinfo-item"><span>Hardware ID (HWID Hash)</span><strong id="m-hwid">--</strong></div>
+                    <div class="msinfo-item"><span>IP Adresse & Standort</span><strong id="m-ip">--</strong></div>
+                    <div class="msinfo-item"><span>Prozessor (CPU)</span><strong id="m-cpu">--</strong></div>
+                    <div class="msinfo-item"><span>Grafikkarte (GPU)</span><strong id="m-gpu">--</strong></div>
+                    <div class="msinfo-item"><span>Mainboard Seriennummer</span><strong id="m-motherboard">--</strong></div>
+                    <div class="msinfo-item"><span>Arbeitsspeicher (RAM)</span><strong id="m-ram">--</strong></div>
+                    <div class="msinfo-item"><span>Betriebssystem (OS Build)</span><strong id="m-os">--</strong></div>
+                    <div class="msinfo-item"><span>Aktives Game-Profil</span><strong id="m-game">--</strong></div>
+                    <div class="msinfo-item"><span>Lizenz-Schlüssel</span><strong id="m-key">--</strong></div>
+                    <div class="msinfo-item"><span>Laufzeit Verbleibend</span><strong id="m-expiry">--</strong></div>
+                </div>
             </div>
 
-            <div id="modal-tab-pane-stream" id="modal-tab-stream" class="modal-tab-pane">
-                <!-- Live Stream Steuerungsleiste -->
+            <div id="modal-tab-stream" class="modal-tab-pane">
                 <div class="stream-controls">
                     <label style="color:#fff; font-size:10px;">FPS:</label>
                     <select id="stream-fps" onchange="updateStreamSettings()">
@@ -120,28 +281,83 @@
                 </div>
 
                 <div class="screen-stream-box" id="stream-wrapper">
-                    <img id="live-video-feed" src="" alt="Stream wird geladen..." style="width: 100%; height: 100%; object-fit: contain;">
+                    <img id="live-video-feed" src="" alt="Warte auf Client-Stream Verbindung..." style="width: 100%; height: 100%; object-fit: contain;">
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- HAUPT PANEL -->
+    <!-- MAIN PANEL CONTAINER -->
     <div id="app-container">
         <sidebar>
             <div class="logo">ASSMAR00</div>
-            <button class="nav-btn active" onclick="switchTab('users', this)">👥 Desktop-Namen & Sessions</button>
+            
+            <div class="nav-category" id="cat-core">1. Kern-Steuerung</div>
+            <button class="nav-btn active" onclick="switchTab('dashboard', this)" id="nav-telemetry">📊 Telemetrie & Übersicht</button>
+            <button class="nav-btn" onclick="switchTab('analytics', this)" id="nav-analytics">📈 User Analytik & Graphen</button>
+            <button class="nav-btn" onclick="switchTab('settings', this)" id="nav-server">🛠️ Server-Kern & Force-Update</button>
+            <button class="nav-btn" onclick="switchTab('features', this)" id="nav-features">⚙️ Remote Feature Switches</button>
+            <button class="nav-btn" onclick="switchTab('commands', this)" id="nav-commands">⚡ Globaler Massen-Befehl</button>
+
+            <div class="nav-category" id="cat-license">2. Lizenz-Engine</div>
+            <button class="nav-btn" onclick="switchTab('licenses', this)" id="nav-keys">🔑 Master Key & God-Mode Manager</button>
+
+            <div class="nav-category" id="cat-users">3. Benutzer & Hardware</div>
+            <button class="nav-btn" onclick="switchTab('users', this)" id="nav-hwid">👥 Desktop-Namen & Sessions</button>
+            <button class="nav-btn" onclick="switchTab('bans', this)" id="nav-bans">⛔ Sperrliste & IP-Sperren</button>
+
+            <div class="nav-category" id="cat-cloud">4. Automation & Support</div>
+            <button class="nav-btn" onclick="switchTab('cloudconfigs', this)" id="nav-cloud">☁️ Cloud Model & Script Push</button>
+            <button class="nav-btn" onclick="switchTab('tickets', this)" id="nav-tickets">🎫 Live Support Tickets</button>
+
+            <div class="nav-category" id="cat-logs">5. System-Admin</div>
+            <button class="nav-btn" onclick="switchTab('logs', this)" id="nav-logs">🛡️ Protokolle & Audit Logs</button>
+            <button class="nav-btn" onclick="switchTab('database', this)" id="nav-db">💾 SQL Backup & Konsole</button>
         </sidebar>
+
         <main>
-            <div id="users" class="tab-content active">
+            <header>
+                <h1 id="page-title">System Telemetrie</h1>
+                <div class="header-controls">
+                    <select class="lang-selector" onchange="changeLanguage(this.value)">
+                        <option value="de">🇩🇪 Deutsch</option>
+                        <option value="en">🇬🇧 English</option>
+                        <option value="it">🇮🇹 Italiano</option>
+                    </select>
+
+                    <select class="theme-selector" onchange="changeTheme(this.value)">
+                        <option value="purple">💜 Neon Purple</option>
+                        <option value="cyan">🩵 Cyber Cyan</option>
+                        <option value="crimson">🔴 Crimson Red</option>
+                        <option value="gold">🟡 Gold Sunset</option>
+                        <option value="matrix">🟢 Matrix Green</option>
+                    </select>
+
+                    <div class="status-badge" id="txt-welcome">WILLKOMMEN ZURÜCK, ASSMAR00</div>
+                </div>
+            </header>
+
+            <!-- 1. DASHBOARD -->
+            <div id="dashboard" class="tab-content active">
+                <div class="grid-4" style="margin-bottom: 20px;">
+                    <div class="stats-box"><label>Aktive Clients</label><div class="stats-num" id="stat-clients">0</div></div>
+                    <div class="stats-box"><label>Offene Tickets</label><div class="stats-num" id="stat-tickets" style="color:var(--accent-color);">0</div></div>
+                    <div class="stats-box"><label>Keys Gesamt</label><div class="stats-num" id="stat-keys">0</div></div>
+                    <div class="stats-box"><label>Sperren Heute</label><div class="stats-num" style="color:#ff4455;">0</div></div>
+                </div>
+            </div>
+
+            <!-- 7. USERS -->
+            <div id="users" class="tab-content">
                 <div class="card">
-                    <h2>Aktive Live-Sessions</h2>
+                    <h2>Aktive Live-Sessions (Desktop-Namen & Eigene Notizen)</h2>
                     <table id="users-table">
                         <thead>
                             <tr>
                                 <th>Windows Desktop-Name</th>
-                                <th>CPU</th>
-                                <th>Game</th>
+                                <th>Deine Admin-Notiz</th>
+                                <th>HWID Hash</th>
+                                <th>Aktives Game</th>
                                 <th>Aktion</th>
                             </tr>
                         </thead>
@@ -149,22 +365,72 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Platzhalter für andere Tabs -->
+            <div id="analytics" class="tab-content"><div class="card"><h2>Analytics & Graphen</h2></div></div>
+            <div id="settings" class="tab-content"><div class="card"><h2>Server Core & Force-Update</h2></div></div>
+            <div id="features" class="tab-content"><div class="card"><h2>Remote Feature Switches</h2></div></div>
+            <div id="commands" class="tab-content"><div class="card"><h2>Globaler Massen-Befehl</h2></div></div>
+            <div id="licenses" class="tab-content"><div class="card"><h2>Master Key & God-Mode Manager</h2></div></div>
+            <div id="bans" class="tab-content"><div class="card"><h2>Sperrliste & IP-Sperren</h2></div></div>
+            <div id="cloudconfigs" class="tab-content"><div class="card"><h2>Cloud Model & Script Push</h2></div></div>
+            <div id="tickets" class="tab-content"><div class="card"><h2>Live Support Tickets</h2></div></div>
+            <div id="logs" class="tab-content"><div class="card"><h2>Protokolle & Audit Logs</h2></div></div>
+            <div id="database" class="tab-content"><div class="card"><h2>SQL Backup & Konsole</h2></div></div>
         </main>
     </div>
 
     <script>
-        const API_BASE = "http://127.0.0.1:8000";
+        // HIER AUF DEINE RENDER-URL UMGESTELLT:
+        const API_BASE = "https://ai-bot-1-zu9n.onrender.com";
         let activeUserDesktop = "";
 
+        const translations = {
+            de: { welcome: "WILLKOMMEN ZURÜCK, ASSMAR00", restricted: "Eingeschränkter Admin-Zugriff", loginBtn: "Zugriff Gewähren" },
+            en: { welcome: "WELCOME BACK, ASSMAR00", restricted: "Restricted Admin Access", loginBtn: "Access Granted" },
+            it: { welcome: "BENVENUTO TORNATO, ASSMAR00", restricted: "Accesso Amministratore Riservato", loginBtn: "Accesso Consentito" }
+        };
+
+        function changeLanguage(lang) {
+            const t = translations[lang];
+            document.getElementById('txt-welcome').innerText = t.welcome;
+            document.getElementById('txt-restricted').innerText = t.restricted;
+            document.getElementById('btn-login').innerText = t.loginBtn;
+        }
+
+        function changeTheme(themeName) {
+            document.body.className = '';
+            if (themeName !== 'purple') {
+                document.body.classList.add('theme-' + themeName);
+            }
+        }
+
         function checkLogin() {
-            if (document.getElementById('pass-input').value.trim() === "Assmar00.550662.-?") {
+            const pass = document.getElementById('pass-input').value.trim();
+            const err = document.getElementById('login-error');
+
+            if (pass === "Assmar00.550662.-?") {
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
                 fetchLiveData();
                 setInterval(fetchLiveData, 5000);
             } else {
-                document.getElementById('login-error').innerText = "Falsches Passwort!";
+                err.innerText = "ACCESS DENIED: Falsches Passwort!";
+                document.getElementById('pass-input').value = "";
             }
+        }
+
+        document.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && document.getElementById('login-overlay').style.display !== 'none') {
+                checkLogin();
+            }
+        });
+
+        function switchTab(tabId, btn) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            btn.classList.add('active');
         }
 
         function switchModalTab(tabName, btn) {
@@ -174,11 +440,20 @@
             btn.classList.add('active');
         }
 
-        function openUserModal(name, cpu, game) {
+        function openUserModal(name, ip, cpu, game) {
             activeUserDesktop = name;
             document.getElementById('m-user-title').innerText = "SYSTEM INSPECTOR // " + name;
-            document.getElementById('m-cpu').innerText = "Prozessor: " + cpu + " | Aktives Spiel: " + game;
-            
+            document.getElementById('m-hwid').innerText = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
+            document.getElementById('m-ip').innerText = ip + " (Online Cloud Client)";
+            document.getElementById('m-cpu').innerText = cpu;
+            document.getElementById('m-gpu').innerText = "NVIDIA GeForce RTX / AMD Radeon";
+            document.getElementById('m-motherboard').innerText = "Default Motherboard SN";
+            document.getElementById('m-ram').innerText = "16384MB RAM";
+            document.getElementById('m-os').innerText = "Windows 10 Pro";
+            document.getElementById('m-game').innerText = game;
+            document.getElementById('m-key').innerText = "ASR-9812-PAUL";
+            document.getElementById('m-expiry').innerText = "Aktiv (Unbegrenzt)";
+
             updateStreamSettings();
             document.getElementById('user-modal').style.display = 'flex';
         }
@@ -208,22 +483,29 @@
 
         async function fetchLiveData() {
             try {
+                let resStats = await fetch(API_BASE + "/api/stats");
+                let stats = await resStats.json();
+                document.getElementById('stat-clients').innerText = stats.active_clients;
+                document.getElementById('stat-tickets').innerText = stats.open_tickets;
+                document.getElementById('stat-keys').innerText = stats.total_keys;
+
                 let resUsers = await fetch(API_BASE + "/api/users");
                 let users = await resUsers.json();
                 let userTable = document.querySelector('#users-table tbody');
                 userTable.innerHTML = "";
                 users.forEach(u => {
                     userTable.innerHTML += `
-                        <tr class="user-row" onclick="openUserModal('${u.desktop}', '${u.cpu}', '${u.game}')">
+                        <tr class="user-row" onclick="openUserModal('${u.desktop}', '${u.ip}', '${u.cpu}', '${u.game}')">
                             <td>${u.desktop}</td>
-                            <td>${u.cpu}</td>
+                            <td><input type="text" value="${u.custom_name}" style="margin-bottom:0; padding:4px 8px; font-size:11px;" onclick="event.stopPropagation()"></td>
+                            <td>${u.hwid.substring(0, 12)}...</td>
                             <td>${u.game}</td>
                             <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;">Inspect & Live</button></td>
                         </tr>
                     `;
                 });
             } catch (e) {
-                console.error("Fehler beim Laden der Live-Daten", e);
+                console.error("Live-Daten Verbindung zur API fehlgeschlagen:", e);
             }
         }
     </script>
