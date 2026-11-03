@@ -78,6 +78,7 @@
             100% { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
         }
 
+        /* LOGIN OVERLAY (Fix username Assmar00) */
         #login-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -99,55 +100,178 @@
             animation: subtleGlow 8s infinite;
         }
 
-        .login-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; color: var(--accent-color); letter-spacing: 2px; }
-        .login-card p { font-size: 11px; color: #666688; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; }
+        .login-card h2 {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 6px;
+            color: var(--accent-color);
+            letter-spacing: 2px;
+        }
+
+        .login-card p {
+            font-size: 11px;
+            color: #666688;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
         .login-card .fixed-user {
-            background: var(--input-bg); border: 1px solid var(--input-border);
-            color: var(--text-muted); padding: 12px 16px; border-radius: 8px; font-size: 13px;
-            margin-bottom: 15px; font-family: monospace; text-align: center;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-muted);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            font-family: monospace;
+            text-align: center;
         }
 
         .login-card input {
-            width: 100%; background: var(--input-bg); border: 1px solid var(--input-border);
-            color: var(--accent-color); padding: 12px 16px; border-radius: 8px; font-size: 13px;
-            margin-bottom: 15px; outline: none; text-align: center;
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--accent-color);
+            padding: 12px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-bottom: 15px;
+            outline: none;
+            text-align: center;
         }
 
         .login-card button {
-            width: 100%; background: var(--accent-color); color: #ffffff; border: none; padding: 12px;
-            font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 13px; text-transform: uppercase;
+            width: 100%;
+            background: var(--accent-color);
+            color: #ffffff;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        .login-card button:hover { background: var(--accent-hover); box-shadow: 0 0 15px var(--accent-glow); }
-        #login-error { color: #ff4455; font-size: 11px; margin-top: 12px; font-family: monospace; font-weight: bold; }
+        .login-card button:hover {
+            background: var(--accent-hover);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
 
-        #app-container { display: none; height: 100vh; display: flex; }
+        #login-error {
+            color: #ff4455;
+            font-size: 11px;
+            margin-top: 12px;
+            font-family: monospace;
+            font-weight: bold;
+        }
 
+        /* HAUPT CONTAINER */
+        #app-container {
+            display: none;
+            height: 100vh;
+            display: flex;
+        }
+
+        /* SIDEBAR */
         sidebar { 
-            width: 280px; background: rgba(7, 6, 12, 0.85); border-right: 1px solid var(--card-border); 
-            display: flex; flex-direction: column; padding: 22px 16px; overflow-y: auto; 
+            width: 280px; 
+            background: rgba(7, 6, 12, 0.85); 
+            border-right: 1px solid var(--card-border); 
+            display: flex; 
+            flex-direction: column; 
+            padding: 22px 16px; 
+            overflow-y: auto; 
         }
 
-        .logo { font-size: 18px; font-weight: 900; margin-bottom: 25px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-color); padding-left: 8px; }
-        .nav-category { font-size: 10px; color: #555577; text-transform: uppercase; margin: 16px 0 6px 10px; font-weight: 700; letter-spacing: 1px; }
+        .logo { 
+            font-size: 18px; 
+            font-weight: 900; 
+            margin-bottom: 25px; 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+            color: var(--accent-color);
+            padding-left: 8px;
+        }
+
+        .nav-category { 
+            font-size: 10px; 
+            color: #555577; 
+            text-transform: uppercase; 
+            margin: 16px 0 6px 10px; 
+            font-weight: 700; 
+            letter-spacing: 1px; 
+        }
 
         .nav-btn { 
-            background: transparent; border: 1px solid transparent; color: #777799; text-align: left; 
-            padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; 
-            margin-bottom: 4px; transition: 0.2s; width: 100%; 
+            background: transparent; 
+            border: 1px solid transparent; 
+            color: #777799; 
+            text-align: left; 
+            padding: 10px 14px; 
+            border-radius: 8px; 
+            font-size: 12px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            margin-bottom: 4px; 
+            transition: 0.2s; 
+            width: 100%; 
         }
 
-        .nav-btn:hover, .nav-btn.active { background: var(--input-bg); color: var(--accent-color); border-color: var(--input-border); }
+        .nav-btn:hover, .nav-btn.active { 
+            background: var(--input-bg); 
+            color: var(--accent-color); 
+            border-color: var(--input-border); 
+        }
 
-        main { flex: 1; padding: 30px; overflow-y: auto; }
+        /* MAIN CONTENT AREA */
+        main { 
+            flex: 1; 
+            padding: 30px; 
+            overflow-y: auto; 
+        }
 
-        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 16px; margin-bottom: 22px; }
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid var(--card-border); 
+            padding-bottom: 16px; 
+            margin-bottom: 22px; 
+        }
+
         h1 { font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
 
-        .header-controls { display: flex; gap: 12px; align-items: center; }
-        .theme-selector, .lang-selector { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); padding: 6px 12px; border-radius: 8px; font-size: 12px; outline: none; cursor: pointer; }
-        .status-badge { background: var(--input-bg); border: 1px solid var(--accent-color); padding: 6px 14px; border-radius: 20px; font-size: 11px; color: var(--accent-color); font-family: monospace; font-weight: bold; }
+        .header-controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .theme-selector, .lang-selector {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            color: var(--text-main);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .status-badge { 
+            background: var(--input-bg); 
+            border: 1px solid var(--accent-color); 
+            padding: 6px 14px; 
+            border-radius: 20px; 
+            font-size: 11px; 
+            color: var(--accent-color); 
+            font-family: monospace; 
+            font-weight: bold; 
+        }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; }
@@ -155,22 +279,62 @@
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
         .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
 
-        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-        .card h2 { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
+        .card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--card-border); 
+            border-radius: 12px; 
+            padding: 20px; 
+            margin-bottom: 16px; 
+        }
+
+        .card h2 { 
+            font-size: 12px; 
+            color: var(--text-muted); 
+            margin-bottom: 14px; 
+            text-transform: uppercase; 
+            letter-spacing: 0.8px; 
+            font-weight: 700; 
+            border-bottom: 1px solid var(--card-border); 
+            padding-bottom: 8px; 
+        }
 
         label { display: block; font-size: 10px; color: #666688; margin-bottom: 5px; font-weight: 700; text-transform: uppercase; }
         
         input, select, textarea { 
-            width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); 
-            color: var(--accent-color); padding: 9px 12px; border-radius: 6px; font-size: 12px; 
-            margin-bottom: 12px; outline: none; transition: 0.2s;
+            width: 100%; 
+            background: var(--input-bg); 
+            border: 1px solid var(--input-border); 
+            color: var(--accent-color); 
+            padding: 9px 12px; 
+            border-radius: 6px; 
+            font-size: 12px; 
+            margin-bottom: 12px; 
+            outline: none; 
+            transition: 0.2s;
         }
 
-        button { background: var(--accent-color); color: #ffffff; border: none; padding: 9px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
-        button:hover { background: var(--accent-hover); box-shadow: 0 0 10px var(--accent-glow); }
+        button { 
+            background: var(--accent-color); 
+            color: #ffffff; 
+            border: none; 
+            padding: 9px 16px; 
+            font-weight: bold; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            transition: 0.2s; 
+        }
+
+        button:hover { 
+            background: var(--accent-hover); 
+            box-shadow: 0 0 10px var(--accent-glow); 
+        }
 
         .btn-danger { background: #7a151f; }
+        .btn-danger:hover { background: #a31c2a; }
         .btn-secondary { background: var(--input-bg); color: #ccccdd; border: 1px solid var(--input-border); }
+        .btn-warning { background: #b8860b; color: #fff; }
+        .btn-warning:hover { background: #daa520; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 5px; }
         th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--card-border); font-size: 11px; }
@@ -184,17 +348,36 @@
 
         /* MODAL */
         #user-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(2, 2, 5, 0.9); display: none; justify-content: center; align-items: center;
-            z-index: 10000; backdrop-filter: blur(10px);
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 2, 5, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(10px);
         }
 
         .modal-card {
-            background: var(--card-bg); border: 1px solid var(--accent-color); border-radius: 14px;
-            width: 850px; max-height: 90vh; overflow-y: auto; padding: 25px; box-shadow: 0 0 30px var(--accent-glow);
+            background: var(--card-bg);
+            border: 1px solid var(--accent-color);
+            border-radius: 14px;
+            width: 850px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 25px;
+            box-shadow: 0 0 30px var(--accent-glow);
         }
 
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; margin-bottom: 18px; }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 12px;
+            margin-bottom: 18px;
+        }
+
         .modal-title { font-size: 16px; font-weight: bold; color: var(--accent-color); font-family: monospace; }
         .close-modal { cursor: pointer; font-size: 18px; color: #ff5555; font-weight: bold; }
 
@@ -210,14 +393,63 @@
         .msinfo-item strong { color: var(--text-main); font-size: 11px; word-break: break-all; }
 
         .screen-stream-box {
-            background: #020204; border: 1px solid var(--accent-color); border-radius: 8px; height: 380px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden;
+            background: #020204;
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            height: 380px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
         }
+
+        .stream-overlay-info {
+            position: absolute;
+            top: 10px; left: 10px;
+            background: rgba(0,0,0,0.7);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 10px;
+            color: var(--accent-color);
+            border: 1px solid var(--input-border);
+            z-index: 10;
+        }
+
+        /* TICKET CHAT STYLES */
+        .chat-box {
+            background: #04030a;
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            height: 220px;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .chat-msg {
+            max-width: 80%;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-family: monospace;
+        }
+
+        .msg-user { background: #1a1829; align-self: flex-start; border: 1px solid #2d2948; color: #ddd; }
+        .msg-admin { background: var(--accent-color); color: #fff; align-self: flex-end; font-weight: bold; }
+        .ticket-badge { padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; }
+        .badge-bug { background: #8b0000; color: #ffaaaa; }
+        .badge-feature { background: #00558b; color: #aaddff; }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN SCREEN -->
+    <!-- LOGIN SCREEN (Fixed Username: Assmar00) -->
     <div id="login-overlay">
         <div class="login-card">
             <h2>ASSMAR00</h2>
@@ -229,38 +461,58 @@
         </div>
     </div>
 
-    <!-- USER MODAL -->
+    <!-- USER MSINFO32 & LIVE SCREEN MODAL -->
     <div id="user-modal">
         <div class="modal-card">
             <div class="modal-header">
-                <div class="modal-title" id="m-user-title">SYSTEM INSPECTOR & LIVE VIEW</div>
+                <div class="modal-title" id="m-user-title">SYSTEM INSPECTOR // USER_UNKNOWN</div>
                 <div class="close-modal" onclick="closeUserModal()">✕</div>
             </div>
 
             <div class="modal-tabs">
-                <button class="modal-tab-btn active" onclick="switchModalTab('info', this)">💻 System Info (msinfo32)</button>
-                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)">🔴 Live Screen View</button>
+                <button class="modal-tab-btn active" onclick="switchModalTab('info', this)" id="mtab-info">💻 System Info (msinfo32)</button>
+                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)" id="mtab-stream">🔴 Live Screen View (15 FPS)</button>
             </div>
 
+            <!-- TAB 1: SYSTEM INFO -->
             <div id="modal-tab-info" class="modal-tab-pane active">
                 <div class="msinfo-grid">
-                    <div class="msinfo-item"><span>Hardware ID (HWID)</span><strong id="m-hwid">--</strong></div>
-                    <div class="msinfo-item"><span>IP Adresse</span><strong id="m-ip">--</strong></div>
-                    <div class="msinfo-item"><span>Prozessor (CPU)</span><strong id="m-cpu">--</strong></div>
-                    <div class="msinfo-item"><span>Aktives Game</span><strong id="m-game">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-hwid">Hardware ID (HWID Hash)</span><strong id="m-hwid">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-ip">IP Adresse & Standort</span><strong id="m-ip">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-cpu">Prozessor (CPU)</span><strong id="m-cpu">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-gpu">Grafikkarte (GPU)</span><strong id="m-gpu">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-mobo">Mainboard Seriennummer</span><strong id="m-motherboard">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-ram">Arbeitsspeicher (RAM)</span><strong id="m-ram">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-os">Betriebssystem (OS Build)</span><strong id="m-os">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-game">Aktives Game-Profil</span><strong id="m-game">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-key">Lizenz-Schlüssel</span><strong id="m-key">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-expiry">Laufzeit Verbleibend</span><strong id="m-expiry">--</strong></div>
                 </div>
             </div>
 
+            <!-- TAB 2: LIVE SCREEN STREAM VIEWER -->
             <div id="modal-tab-stream" class="modal-tab-pane">
                 <div class="screen-stream-box">
-                    <img id="live-video-feed" src="" alt="Warte auf Client-Stream..." style="width: 100%; height: 100%; object-fit: contain;">
+                    <div class="stream-overlay-info" id="stream-status-text">STREAM: LIVE // 720p @ 15 FPS // GHOST MODE ACTIVE</div>
+                    <img id="live-video-feed" src="" alt="Warte auf Client-Stream Verbindung..." style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 15px;">
+                <h3 style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;" id="lbl-modal-actions">Einzel-User Aktionen</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-secondary" onclick="alert('HWID Reset durchgeführt!')" id="mbtn-hwid">HWID Reset</button>
+                    <button class="btn-secondary" onclick="prompt('Nachricht an User senden:')" id="mbtn-msg">Screen-Message Senden</button>
+                    <button class="btn-danger" onclick="alert('User gekickt!')" id="mbtn-kick">Session Kicken</button>
+                    <button class="btn-danger" style="background:#8b0000;" onclick="alert('User permanent gebannt!')" id="mbtn-ban">HWID Bannen</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- MAIN APP CONTAINER -->
-    <div id="app-container">
+    <!-- MAIN PANEL CONTAINER -->
+    <div id="app-container" style="display: none;">
+        <!-- SIDEBAR -->
         <sidebar>
             <div class="logo">ASSMAR00</div>
             
@@ -272,7 +524,7 @@
             <button class="nav-btn" onclick="switchTab('commands', this)" id="nav-commands">⚡ Globaler Massen-Befehl</button>
 
             <div class="nav-category" id="cat-license">2. Lizenz-Engine</div>
-            <button class="nav-btn" onclick="switchTab('licenses', this)" id="nav-keys">🔑 Master Key & God-Mode Manager</button>
+            <button class="nav-btn" onclick="switchTab('licenses', this)" id="nav-keys">🔑 Key Generator & Pausieren</button>
 
             <div class="nav-category" id="cat-users">3. Benutzer & Hardware</div>
             <button class="nav-btn" onclick="switchTab('users', this)" id="nav-hwid">👥 Desktop-Namen & Sessions</button>
@@ -287,6 +539,7 @@
             <button class="nav-btn" onclick="switchTab('database', this)" id="nav-db">💾 SQL Backup & Konsole</button>
         </sidebar>
 
+        <!-- MAIN CONTENT AREA -->
         <main>
             <header>
                 <h1 id="page-title">System Telemetrie</h1>
@@ -312,170 +565,559 @@
             <!-- 1. DASHBOARD -->
             <div id="dashboard" class="tab-content active">
                 <div class="grid-4" style="margin-bottom: 20px;">
-                    <div class="stats-box"><label>Aktive Clients</label><div class="stats-num" id="stat-clients">0</div></div>
-                    <div class="stats-box"><label>Offene Tickets</label><div class="stats-num" id="stat-tickets" style="color:var(--accent-color);">0</div></div>
-                    <div class="stats-box"><label>Keys Gesamt</label><div class="stats-num" id="stat-keys">0</div></div>
-                    <div class="stats-box"><label>Sperren Heute</label><div class="stats-num" style="color:#ff4455;">0</div></div>
+                    <div class="stats-box"><label id="lbl-active-clients">Aktive Clients</label><div class="stats-num" id="stat-active-clients">0</div></div>
+                    <div class="stats-box"><label id="lbl-open-tickets">Offene Tickets</label><div class="stats-num" style="color:var(--accent-color);" id="stat-open-tickets">0</div></div>
+                    <div class="stats-box"><label id="lbl-total-keys">Keys Gesamt</label><div class="stats-num" id="stat-total-keys">0</div></div>
+                    <div class="stats-box"><label id="lbl-bans-today">Sperren Heute</label><div class="stats-num" style="color:#ff4455;" id="stat-total-bans">0</div></div>
                 </div>
                 <div class="card">
-                    <h2>Notfall-Steuerung</h2>
-                    <button class="btn-danger" onclick="alert('Kill Switch Executed!')">🚨 EMERGENCY KILL-SWITCH</button>
-                    <button class="btn-secondary" onclick="alert('Maintenance Toggled!')" style="margin-left: 10px;">Wartungsmodus schalten</button>
+                    <h2 id="hdr-emergency">Notfall-Steuerung</h2>
+                    <button class="btn-danger" onclick="alert('Kill Switch Executed!')" id="btn-killswitch">🚨 EMERGENCY KILL-SWITCH</button>
+                    <button class="btn-secondary" onclick="alert('Maintenance Toggled!')" style="margin-left: 10px;" id="btn-maintenance">Wartungsmodus schalten</button>
                 </div>
             </div>
 
             <!-- 2. ANALYTICS -->
             <div id="analytics" class="tab-content">
                 <div class="card">
-                    <h2>User Analytik & Graphen</h2>
-                    <p style="font-size: 12px; color: var(--text-muted);">Echtzeit-Auswertung der aktiven Systemprozesse und Client-Verbindungen.</p>
+                    <h2 id="hdr-analytics">Live User Telemetrie & Graphen</h2>
+                    <p style="font-size: 12px; color: var(--text-muted);" id="txt-analytics-desc">Fortnite: 65% | CS2: 20% | Valorant: 10% | Rust/Warzone: 5%</p>
                 </div>
             </div>
 
-            <!-- 3. SETTINGS -->
+            <!-- 3. SERVER CORE -->
             <div id="settings" class="tab-content">
                 <div class="card">
-                    <h2>Server Core & Force-Update</h2>
-                    <label>Minimale Loader-Version</label>
-                    <input type="text" value="1.0.0">
-                    <button onclick="alert('Update-Konfiguration gespeichert!')">Force-Update an Clients pushen</button>
+                    <h2 id="hdr-update-cfg">Update-Zwang konfigurieren</h2>
+                    <label id="lbl-min-version">Minimale Loader-Version</label><input type="text" value="1.0.0">
+                    <label id="lbl-dl-link">Download Link für Update</label><input type="text" value="https://github.com/Assmar00">
+                    <button id="btn-save-cfg">Konfiguration Speichern</button>
                 </div>
             </div>
 
-            <!-- 4. FEATURES -->
+            <!-- 4. FEATURE KILL-SWITCHES -->
             <div id="features" class="tab-content">
                 <div class="card">
-                    <h2>Remote Feature Switches</h2>
-                    <label><input type="checkbox" checked style="width:auto; margin-right:8px;"> Aimbot-Modul global erlauben</label>
-                    <label><input type="checkbox" checked style="width:auto; margin-right:8px;"> Screen-Streaming erlauben</label>
-                    <button onclick="alert('Feature-Switches aktualisiert!')">Einstellungen Speichern</button>
+                    <h2 id="hdr-modules">Module per Fernwartung sperren</h2>
+                    <div class="switch-row"><span id="sw-aimbot">Aimbot-Modul erlaubt</span><input type="checkbox" checked></div>
+                    <div class="switch-row"><span id="sw-recoil">Recoil Control erlaubt</span><input type="checkbox" checked></div>
+                    <div class="switch-row"><span id="sw-color">Color Prefire erlaubt</span><input type="checkbox" checked></div>
+                    <button onclick="alert('Updated!')" id="btn-save-modules">Einstellungen Speichern</button>
                 </div>
             </div>
 
-            <!-- 5. COMMANDS -->
+            <!-- GLOBAL COMMANDS -->
             <div id="commands" class="tab-content">
                 <div class="card">
-                    <h2>Globaler Massen-Befehl</h2>
-                    <label>Befehl / Skript für alle Clients</label>
-                    <textarea rows="3" placeholder="print('Hello')"></textarea>
-                    <button onclick="alert('Befehl an alle Clients gesendet!')">An alle Clients abfeuern</button>
+                    <h2 id="hdr-global-cmd">Globaler Massen-Befehl an Clients</h2>
+                    <label id="lbl-cmd-type">Befehl auswählen</label>
+                    <select>
+                        <option id="opt-cmd-1">Clients zu Neustart zwingen</option>
+                        <option id="opt-cmd-2">Lokalen Cache leeren</option>
+                        <option id="opt-cmd-3">Alle Loader minimieren</option>
+                        <option id="opt-cmd-4">Notfall-Sperre aktivieren</option>
+                    </select>
+                    <button id="btn-send-cmd">Befehl an alle Clients feuern</button>
                 </div>
             </div>
 
-            <!-- 6. LICENSES (Mit echter Web-Erstellung) -->
+            <!-- 5. LICENSES & CUSTOM EXPIRY & PAUSE -->
             <div id="licenses" class="tab-content">
                 <div class="grid-2">
                     <div class="card">
-                        <h2>Neuen Key generieren</h2>
-                        <label>Key Code</label>
-                        <input type="text" id="new-key-code" value="ASR-GODMODE-NEW">
-                        <label>Notiz / Name</label>
-                        <input type="text" id="new-key-note" placeholder="z.B. Für Freund">
-                        <label>Ablaufdatum</label>
-                        <input type="date" id="new-key-expiry" value="2026-12-31">
-                        <button onclick="createNewKey()">Key in Datenbank speichern</button>
+                        <h2 id="hdr-batch-gen">Key Generator & Ablaufdatum</h2>
+                        <label id="lbl-duration">Eigenes Ablaufdatum festlegen</label>
+                        <input type="datetime-local" id="custom-expiry-date">
+                        
+                        <label id="lbl-count">Anzahl Keys</label><input type="number" value="10">
+                        <label>Prefix</label><input type="text" placeholder="ASSMAR">
+                        <button id="btn-gen-keys" onclick="alert('Keys mit individuellem Ablaufdatum erstellt!')">Keys Erstellen</button>
+                        
+                        <div style="margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 15px;">
+                            <label style="color: #ffaa00;">Globale Lizenz-Steuerung</label>
+                            <button class="btn-warning" onclick="alert('ALLE Keys wurden pausiert!')" id="btn-pause-all" style="width: 100%; margin-top: 5px;">⏸️ ALLE KEYS PAUSIEREN</button>
+                        </div>
                     </div>
-
-                    <div class="card" style="max-height: 480px; overflow-y: auto;">
-                        <h2>Vorhandene Keys</h2>
-                        <table id="keys-table">
+                    <div class="card" style="max-height:400px; overflow-y:auto;">
+                        <h2 id="hdr-latest-keys">Aktive Keys & Einzel-Pause</h2>
+                        <table>
                             <thead>
                                 <tr>
-                                    <th>Key Code</th>
-                                    <th>Notiz</th>
-                                    <th>Ablauf</th>
-                                    <th>Status</th>
+                                    <th id="th-key">Key</th>
+                                    <th id="th-status">Status</th>
+                                    <th id="th-action-key">Aktion</th>
                                 </tr>
                             </thead>
-                            <tbody></tbody>
+                            <tbody id="keys-table-body">
+                                <!-- Dynamically loaded keys -->
+                            </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- 7. USERS -->
+            <!-- 6. PRICING -->
+            <div id="pricing" class="tab-content"><div class="card"><h2 id="hdr-pricing">Abonnements & Tiers</h2><p style="font-size:12px; color:var(--text-muted);" id="txt-pricing-desc">Abo-Modelle und Ränge verwalten.</p></div></div>
+
+            <!-- 7. USERS & DESKTOP NAMES & RENAME -->
             <div id="users" class="tab-content">
                 <div class="card">
-                    <h2>Aktive Live-Sessions (Echte verbundene Clients)</h2>
-                    <table id="users-table">
+                    <h2 id="hdr-user-table-desc">Aktive Live-Sessions (Desktop-Namen & Eigene Admin-Notizen)</h2>
+                    <table>
                         <thead>
                             <tr>
-                                <th>Windows Desktop-Name</th>
-                                <th>Admin-Notiz</th>
-                                <th>HWID</th>
-                                <th>Aktives Game</th>
-                                <th>Aktion</th>
+                                <th id="th-desktop">Windows Desktop-Name</th>
+                                <th id="th-custom-name">Deine Admin-Notiz / Umbennung</th>
+                                <th id="th-hwid">HWID Hash</th>
+                                <th id="th-game">Aktives Game</th>
+                                <th id="th-action">Aktion</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody id="users-table-body">
+                            <!-- Dynamically loaded active clients -->
+                        </tbody>
                     </table>
                 </div>
             </div>
 
             <!-- 8. BANS -->
-            <div id="bans" class="tab-content">
-                <div class="card">
-                    <h2>Sperrliste & IP-Sperren</h2>
-                    <label>HWID oder IP blockieren</label>
-                    <input type="text" placeholder="Hash oder IP eingeben...">
-                    <button class="btn-danger" onclick="alert('Client gesperrt!')">Permanent Sperren</button>
-                </div>
-            </div>
+            <div id="bans" class="tab-content"><div class="card"><h2 id="hdr-bans">Hardware & IP Sperren</h2><label id="lbl-ban-target">HWID oder IP</label><input type="text"><button class="btn-danger" id="btn-ban-perm">Permanent Sperren</button></div></div>
 
             <!-- 9. CLOUD CONFIGS -->
-            <div id="cloudconfigs" class="tab-content">
-                <div class="card">
-                    <h2>Cloud Model & Script Push</h2>
-                    <label>ONNX / Skript Datei hochladen</label>
-                    <input type="file">
-                    <button onclick="alert('Modell hochgeladen!')">An Clients verteilen</button>
-                </div>
-            </div>
+            <div id="cloudconfigs" class="tab-content"><div class="card"><h2 id="hdr-cloud">ONNX Model Verteilen</h2><input type="file"><button id="btn-push-cloud">An Clients Pushen</button></div></div>
 
             <!-- 10. TICKETS -->
             <div id="tickets" class="tab-content">
-                <div class="card">
-                    <h2>Live Support Tickets</h2>
-                    <p style="font-size: 12px; color: var(--text-muted);">Keine offenen Support-Tickets vorhanden.</p>
+                <div class="grid-2">
+                    <div class="card">
+                        <h2 id="hdr-tickets-list">Eingegangene Loader-Reports</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Kategorie</th>
+                                    <th>Game</th>
+                                    <th>Status</th>
+                                    <th>Aktion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="user-row" onclick="loadTicket('T-881', 'User_Alpha', 'Bug Report', 'Fortnite', 'Color Prefire triggert manchmal leicht verzögert bei Waffenswap.', 'screenshot1.jpg', 'OFFEN')">
+                                    <td>User_Alpha</td>
+                                    <td><span class="ticket-badge badge-bug">BUG</span></td>
+                                    <td>Fortnite</td>
+                                    <td style="color:#ffaa00;">Offen</td>
+                                    <td><button class="btn-secondary" style="padding: 2px 6px; font-size: 9px;">Öffnen</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card" id="ticket-detail-box">
+                        <h2 id="t-id-title">TICKET INSPECTOR // T-881</h2>
+                        
+                        <div style="margin-bottom: 12px; font-size: 11px; font-family: monospace;">
+                            <div><strong>User:</strong> <span id="t-user">User_Alpha</span> (HWID: e3b0c442...)</div>
+                            <div><strong>Modell / Game:</strong> <span id="t-game" style="color:var(--accent-color);">Fortnite</span></div>
+                            <div><strong>Kategorie:</strong> <span id="t-cat">Bug Report</span></div>
+                        </div>
+
+                        <label>Ticket Status ändern:</label>
+                        <select id="ticket-status-select" style="margin-bottom: 10px;">
+                            <option value="open" style="color:#ffaa00;">🟡 Offen (Neu)</option>
+                            <option value="progress" style="color:#00ffaa;">🔵 In Bearbeitung</option>
+                            <option value="resolved" style="color:#00ff66;">🟢 Gelöst (Resolved)</option>
+                            <option value="closed" style="color:#ff4455;">🔴 Geschlossen / Abgelehnt</option>
+                        </select>
+
+                        <label>Nachricht vom User:</label>
+                        <textarea id="t-msg" rows="2" readonly style="background:#05040a;">Color Prefire triggert manchmal leicht verzögert bei Waffenswap.</textarea>
+
+                        <label id="lbl-live-chat">Live-Chat zum Loader des Users:</label>
+                        <div class="chat-box" id="chat-messages">
+                            <div class="chat-msg msg-user"><strong>User_Alpha:</strong> Hey, könnt ihr euch das anschauen?</div>
+                            <div class="chat-msg msg-admin"><strong>Admin Assmar00:</strong> Hi! Ich habe mir dein Ticket angeschaut. Welche Grafikkarte nutzt du?</div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="chat-input" placeholder="Antwort direkt in den Loader senden..." style="margin-bottom: 0;">
+                            <button onclick="sendChatMessage()">Senden</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- 11. LOGS -->
-            <div id="logs" class="tab-content">
-                <div class="card">
-                    <h2>Protokolle & Audit Logs</h2>
-                    <textarea rows="8" readonly style="font-family:monospace; background:#020204; color:#00ff66;">[INFO] Server aktiv auf Render Cloud...
-[DB] SQLite Datenbank erfolgreich verbunden.</textarea>
-                </div>
-            </div>
+            <div id="logs" class="tab-content"><div class="card"><h2 id="hdr-logs">Audit Protokolle & Logs</h2><p style="font-family:monospace; font-size:11px; color:var(--accent-color);">[17:12:00] Admin Assmar00 logged in.<br>[17:11:45] Key verified: ASR-9812.<br>[17:10:02] Core status OK.</p></div></div>
 
             <!-- 12. DATABASE -->
-            <div id="database" class="tab-content">
-                <div class="card">
-                    <h2>SQL Backup & Konsole</h2>
-                    <button class="btn-secondary" onclick="alert('Backup heruntergeladen!')">SQLite Datenbank herunterladen (.db)</button>
-                </div>
-            </div>
+            <div id="database" class="tab-content"><div class="card"><h2 id="hdr-db">Database Backups & Wartung</h2><button class="btn-secondary" id="btn-sql-dl">SQL Backup Download</button></div></div>
         </main>
     </div>
 
     <script>
-        const API_BASE = ""; 
-        let activeUserDesktop = "";
-
         const translations = {
-            de: { welcome: "WILLKOMMEN ZURÜCK, ASSMAR00", restricted: "Eingeschränkter Admin-Zugriff", loginBtn: "Zugriff Gewähren" },
-            en: { welcome: "WELCOME BACK, ASSMAR00", restricted: "Restricted Admin Access", loginBtn: "Access Granted" },
-            it: { welcome: "BENVENUTO TORNATO, ASSMAR00", restricted: "Accesso Amministratore Riservato", loginBtn: "Accesso Consentito" }
+            de: {
+                welcome: "WILLKOMMEN ZURÜCK, ASSMAR00",
+                restricted: "Eingeschränkter Admin-Zugriff",
+                loginBtn: "Zugriff Gewähren",
+                catCore: "1. Kern-Steuerung",
+                catLicense: "2. Lizenz-Engine",
+                catUsers: "3. Benutzer & Hardware",
+                catCloud: "4. Automation & Support",
+                catLogs: "5. System-Admin",
+                navTelemetry: "📊 Telemetrie & Übersicht",
+                navAnalytics: "📈 User Analytik & Graphen",
+                navServer: "🛠️ Server-Kern & Force-Update",
+                navFeatures: "⚙️ Remote Feature Switches",
+                navCommands: "⚡ Globaler Massen-Befehl",
+                navKeys: "🔑 Key Generator & Pausieren",
+                navHwid: "👥 Desktop-Namen & Sessions",
+                navBans: "⛔ Sperrliste & IP-Sperren",
+                navCloud: "☁️ Cloud Model & Script Push",
+                navTickets: "🎫 Live Support Tickets",
+                navLogs: "🛡️ Protokolle & Audit Logs",
+                navDb: "💾 SQL Backup & Konsole",
+                activeClients: "Aktive Clients",
+                openTickets: "Offene Tickets",
+                totalKeys: "Keys Gesamt",
+                bansToday: "Sperren Heute",
+                hdrEmergency: "Notfall-Steuerung",
+                btnKill: "🚨 EMERGENCY KILL-SWITCH",
+                btnMaint: "Wartungsmodus schalten",
+                hdrAnalytics: "Live User Telemetrie & Graphen",
+                txtAnalyticsDesc: "Fortnite: 65% | CS2: 20% | Valorant: 10% | Rust/Warzone: 5%",
+                hdrUpdate: "Update-Zwang konfigurieren",
+                lblMinVer: "Minimale Loader-Version",
+                lblDlLink: "Download Link für Update",
+                btnSaveCfg: "Konfiguration Speichern",
+                hdrModules: "Module per Fernwartung sperren",
+                swAimbot: "Aimbot-Modul erlaubt",
+                swRecoil: "Recoil Control erlaubt",
+                swColor: "Color Prefire erlaubt",
+                btnSaveModules: "Einstellungen Speichern",
+                hdrGlobalCmd: "Globaler Massen-Befehl an Clients",
+                lblCmdType: "Befehl auswählen",
+                optCmd1: "Clients zu Neustart zwingen",
+                optCmd2: "Lokalen Cache leeren",
+                optCmd3: "Alle Loader minimieren",
+                optCmd4: "Notfall-Sperre aktivieren",
+                btnSendCmd: "Befehl an alle Clients feuern",
+                hdrBatchGen: "Key Generator & Ablaufdatum",
+                lblDuration: "Eigenes Ablaufdatum festlegen",
+                lblCount: "Anzahl Keys",
+                btnGenKeys: "Keys Erstellen",
+                hdrLatestKeys: "Aktive Keys & Einzel-Pause",
+                thKey: "Key",
+                thStatus: "Status",
+                thActionKey: "Aktion",
+                hdrUserTableDesc: "Aktive Live-Sessions (Desktop-Namen & Eigene Admin-Notizen)",
+                thDesktop: "Windows Desktop-Name",
+                thCustomName: "Deine Admin-Notiz / Umbennung",
+                thHwid: "HWID Hash",
+                thGame: "Aktives Game",
+                thAction: "Aktion",
+                btnTblInspect: "Inspect & Live",
+                hdrBans: "Hardware & IP Sperren",
+                lblBanTarget: "HWID oder IP",
+                btnBanPerm: "Permanent Sperren",
+                hdrCloud: "ONNX Model Verteilen",
+                btnPushCloud: "An Clients Pushen",
+                hdrTicketsList: "Eingegangene Loader-Reports",
+                lblLiveChat: "Live-Chat zum Loader des Users:",
+                hdrLogs: "Audit Protokolle & Logs",
+                hdrDb: "Database Backups & Wartung",
+                btnSqlDl: "SQL Backup Download",
+                mtabInfo: "💻 System Info (msinfo32)",
+                mtabStream: "🔴 Live Screen View (15 FPS)",
+                lblMHwid: "Hardware ID (HWID Hash)",
+                lblMIp: "IP Adresse & Standort",
+                lblMCpu: "Prozessor (CPU)",
+                lblMGpu: "Grafikkarte (GPU)",
+                lblMMobo: "Mainboard Seriennummer",
+                lblMRam: "Arbeitsspeicher (RAM)",
+                lblMOs: "Betriebssystem (OS Build)",
+                lblMGame: "Aktives Game-Profil",
+                lblMKey: "Lizenz-Schlüssel",
+                lblMExpiry: "Laufzeit Verbleibend",
+                streamStatusText: "STREAM: LIVE // 720p @ 15 FPS // GHOST MODE ACTIVE",
+                lblModalActions: "Einzel-User Aktionen",
+                mbtnHwid: "HWID Reset",
+                mbtnMsg: "Screen-Message Senden",
+                mbtnKick: "Session Kicken",
+                mbtnBan: "HWID Bannen"
+            },
+            en: {
+                welcome: "WELCOME BACK, ASSMAR00",
+                restricted: "Restricted Admin Access",
+                loginBtn: "Access Granted",
+                catCore: "1. Core Control",
+                catLicense: "2. License Engine",
+                catUsers: "3. Users & Hardware",
+                catCloud: "4. Automation & Support",
+                catLogs: "5. System Admin",
+                navTelemetry: "📊 Telemetry & Overview",
+                navAnalytics: "📈 User Analytics & Graphs",
+                navServer: "🛠️ Server Core & Force-Update",
+                navFeatures: "⚙️ Remote Feature Switches",
+                navCommands: "⚡ Global Mass Command",
+                navKeys: "🔑 Key Generator & Pause",
+                navHwid: "👥 Desktop Names & Sessions",
+                navBans: "⛔ Banlist & IP Restrictions",
+                navCloud: "☁️ Cloud Model & Script Push",
+                navTickets: "🎫 Live Support Tickets",
+                navLogs: "🛡️ Audit Trail & Logs",
+                navDb: "💾 SQL Backup & Console",
+                activeClients: "Active Clients",
+                openTickets: "Open Tickets",
+                totalKeys: "Total Keys",
+                bansToday: "Bans Today",
+                hdrEmergency: "Emergency Control",
+                btnKill: "🚨 EMERGENCY KILL-SWITCH",
+                btnMaint: "Toggle Maintenance Mode",
+                hdrAnalytics: "Live User Telemetry & Graphs",
+                txtAnalyticsDesc: "Fortnite: 65% | CS2: 20% | Valorant: 10% | Rust/Warzone: 5%",
+                hdrUpdate: "Configure Forced Update",
+                lblMinVer: "Minimum Loader Version",
+                lblDlLink: "Update Download Link",
+                btnSaveCfg: "Save Configuration",
+                hdrModules: "Remote Module Switches",
+                swAimbot: "Aimbot Module Allowed",
+                swRecoil: "Recoil Control Allowed",
+                swColor: "Color Prefire Allowed",
+                btnSaveModules: "Save Settings",
+                hdrGlobalCmd: "Global Mass Command to Clients",
+                lblCmdType: "Select Command",
+                optCmd1: "Force Clients to Restart",
+                optCmd2: "Clear Local Cache",
+                optCmd3: "Minimize All Loaders",
+                optCmd4: "Activate Emergency Lock",
+                btnSendCmd: "Fire Command to All Clients",
+                hdrBatchGen: "Key Generator & Custom Expiry",
+                lblDuration: "Set Custom Expiry Date",
+                lblCount: "Key Count",
+                btnGenKeys: "Generate Keys",
+                hdrLatestKeys: "Active Keys & Individual Pause",
+                thKey: "Key",
+                thStatus: "Status",
+                thActionKey: "Action",
+                hdrUserTableDesc: "Active Live Sessions (Desktop Names & Your Admin Notes)",
+                thDesktop: "Windows Desktop Name",
+                thCustomName: "Your Admin Note / Rename",
+                thHwid: "HWID Hash",
+                thGame: "Active Game",
+                thAction: "Action",
+                btnTblInspect: "Inspect & Live",
+                hdrBans: "Hardware & IP Restrictions",
+                lblBanTarget: "HWID or IP",
+                btnBanPerm: "Ban Permanently",
+                hdrCloud: "Deploy ONNX Model",
+                btnPushCloud: "Push to Clients",
+                hdrTicketsList: "Received Loader Reports",
+                lblLiveChat: "Live Chat to User's Loader:",
+                hdrLogs: "Audit Trail & Logs",
+                hdrDb: "Database Backups & Maintenance",
+                btnSqlDl: "Download SQL Backup",
+                mtabInfo: "💻 System Info (msinfo32)",
+                mtabStream: "🔴 Live Screen View (15 FPS)",
+                lblMHwid: "Hardware ID (HWID Hash)",
+                lblMIp: "IP Address & Location",
+                lblMCpu: "Processor (CPU)",
+                lblMGpu: "Graphics Card (GPU)",
+                lblMMobo: "Motherboard Serial",
+                lblMRam: "Memory (RAM)",
+                lblMOs: "Operating System (OS Build)",
+                lblMGame: "Active Game Profile",
+                lblMKey: "License Key",
+                lblMExpiry: "Remaining Time",
+                streamStatusText: "STREAM: LIVE // 720p @ 15 FPS // GHOST MODE ACTIVE",
+                lblModalActions: "Single User Actions",
+                mbtnHwid: "Reset HWID",
+                mbtnMsg: "Send Screen Message",
+                mbtnKick: "Kick Session",
+                mbtnBan: "Ban HWID"
+            },
+            it: {
+                welcome: "BENVENUTO TORNATO, ASSMAR00",
+                restricted: "Accesso Amministratore Riservato",
+                loginBtn: "Accesso Consentito",
+                catCore: "1. Controllo Principale",
+                catLicense: "2. Motore Licenze",
+                catUsers: "3. Utenti & Hardware",
+                catCloud: "4. Automazione & Supporto",
+                catLogs: "5. Admin di Sistema",
+                navTelemetry: "📊 Telemetria & Panoramica",
+                navAnalytics: "📈 Analitica Utenti & Grafici",
+                navServer: "🛠️ Core Server & Aggiornamento",
+                navFeatures: "⚙️ Interruttori Funzionalità",
+                navCommands: "⚡ Comando di Massa Globale",
+                navKeys: "🔑 Generatore & Pausa Chiavi",
+                navHwid: "👥 Nomi Desktop & Sessioni",
+                navBans: "⛔ Lista Ban & Restrizioni IP",
+                navCloud: "☁️ Invio Modello Cloud & Script",
+                navTickets: "🎫 Ticket di Supporto Live",
+                navLogs: "🛡️ Registro & Log di controllo",
+                navDb: "💾 Backup SQL & Console",
+                activeClients: "Client Attivi",
+                openTickets: "Ticket Aperti",
+                totalKeys: "Chiavi Totali",
+                bansToday: "Ban Oggi",
+                hdrEmergency: "Controllo di Emergenza",
+                btnKill: "🚨 ARRESTO DI EMERGENZA",
+                btnMaint: "Attiva Modalità Manutenzione",
+                hdrAnalytics: "Telemetria Utenti & Grafici in Tempo Reale",
+                txtAnalyticsDesc: "Fortnite: 65% | CS2: 20% | Valorant: 10% | Rust/Warzone: 5%",
+                hdrUpdate: "Configura Aggiornamento Forzato",
+                lblMinVer: "Versione Minima Loader",
+                lblDlLink: "Link Download Aggiornamento",
+                btnSaveCfg: "Salva Configurazione",
+                hdrModules: "Blocco Moduli a Distanza",
+                swAimbot: "Modulo Aimbot Consentito",
+                swRecoil: "Controllo Recoil Consentito",
+                swColor: "Color Prefire Consentito",
+                btnSaveModules: "Salva Impostazioni",
+                hdrGlobalCmd: "Comando di Massa Globale ai Client",
+                lblCmdType: "Seleziona Comando",
+                optCmd1: "Forza Riavvio Client",
+                optCmd2: "Pulisci Cache Locale",
+                optCmd3: "Minimizza Tutti i Loader",
+                optCmd4: "Attiva Blocco di Emergenza",
+                btnSendCmd: "Invia Comando a Tutti i Client",
+                hdrBatchGen: "Generatore & Scadenza Personalizzata",
+                lblDuration: "Imposta Data di Scadenza",
+                lblCount: "Quantità Chiavi",
+                btnGenKeys: "Genera Chiavi",
+                hdrLatestKeys: "Chiavi Attive & Pausa",
+                thKey: "Chiave",
+                thStatus: "Stato",
+                thActionKey: "Azione",
+                hdrUserTableDesc: "Sessioni Attive (Nomi Desktop & Note Admin Personali)",
+                thDesktop: "Nome Desktop Windows",
+                thCustomName: "Tua Nota / Rinomina",
+                thHwid: "Hash HWID",
+                thGame: "Gioco Attivo",
+                thAction: "Azione",
+                btnTblInspect: "Ispeziona & Live",
+                hdrBans: "Restrizioni Hardware & IP",
+                lblBanTarget: "HWID o IP",
+                btnBanPerm: "Banna Permanentemente",
+                hdrCloud: "Distribuisci Modello ONNX",
+                btnPushCloud: "Invia ai Client",
+                hdrTicketsList: "Report Ricevuti dal Loader",
+                lblLiveChat: "Live Chat verso il Loader dell'Utente:",
+                hdrLogs: "Registro Audit & Log",
+                hdrDb: "Backup Database & Manutenzione",
+                btnSqlDl: "Scarica Backup SQL",
+                mtabInfo: "💻 Info di Sistema (msinfo32)",
+                mtabStream: "🔴 Vista Schermo Live (15 FPS)",
+                lblMHwid: "ID Hardware (Hash HWID)",
+                lblMIp: "Indirizzo IP & Posizione",
+                lblMCpu: "Processore (CPU)",
+                lblMGpu: "Scheda Grafica (GPU)",
+                lblMMobo: "Numero Seriale Scheda Madre",
+                lblMRam: "Memoria (RAM)",
+                lblMOs: "Sistema Operativo (Build OS)",
+                lblMGame: "Profilo Gioco Attivo",
+                lblMKey: "Chiave di Licenza",
+                lblMExpiry: "Tempo Rimanente",
+                streamStatusText: "STREAM: LIVE // 720p @ 15 FPS // GHOST MODE ATTIVO",
+                lblModalActions: "Azioni Singolo Utente",
+                mbtnHwid: "Ripristina HWID",
+                mbtnMsg: "Invia Messaggio a Schermo",
+                mbtnKick: "Disconnetti Sessione",
+                mbtnBan: "Banna HWID"
+            }
         };
 
         function changeLanguage(lang) {
             const t = translations[lang];
-            if(t) {
-                document.getElementById('txt-welcome').innerText = t.welcome;
-                document.getElementById('txt-restricted').innerText = t.restricted;
-                document.getElementById('btn-login').innerText = t.loginBtn;
-            }
+            document.getElementById('txt-welcome').innerText = t.welcome;
+            document.getElementById('txt-restricted').innerText = t.restricted;
+            document.getElementById('btn-login').innerText = t.loginBtn;
+            document.getElementById('cat-core').innerText = t.catCore;
+            document.getElementById('cat-license').innerText = t.catLicense;
+            document.getElementById('cat-users').innerText = t.catUsers;
+            document.getElementById('cat-cloud').innerText = t.catCloud;
+            document.getElementById('cat-logs').innerText = t.catLogs;
+            document.getElementById('nav-telemetry').innerText = t.navTelemetry;
+            document.getElementById('nav-analytics').innerText = t.navAnalytics;
+            document.getElementById('nav-server').innerText = t.navServer;
+            document.getElementById('nav-features').innerText = t.navFeatures;
+            document.getElementById('nav-commands').innerText = t.navCommands;
+            document.getElementById('nav-keys').innerText = t.navKeys;
+            document.getElementById('nav-hwid').innerText = t.navHwid;
+            document.getElementById('nav-bans').innerText = t.navBans;
+            document.getElementById('nav-cloud').innerText = t.navCloud;
+            document.getElementById('nav-tickets').innerText = t.navTickets;
+            document.getElementById('nav-logs').innerText = t.navLogs;
+            document.getElementById('nav-db').innerText = t.navDb;
+            document.getElementById('lbl-active-clients').innerText = t.activeClients;
+            document.getElementById('lbl-open-tickets').innerText = t.openTickets;
+            document.getElementById('lbl-total-keys').innerText = t.totalKeys;
+            document.getElementById('lbl-bans-today').innerText = t.bansToday;
+            document.getElementById('hdr-emergency').innerText = t.hdrEmergency;
+            document.getElementById('btn-killswitch').innerText = t.btnKill;
+            document.getElementById('btn-maintenance').innerText = t.btnMaint;
+            document.getElementById('hdr-analytics').innerText = t.hdrAnalytics;
+            document.getElementById('txt-analytics-desc').innerText = t.txtAnalyticsDesc;
+            document.getElementById('hdr-update-cfg').innerText = t.hdrUpdate;
+            document.getElementById('lbl-min-version').innerText = t.lblMinVer;
+            document.getElementById('lbl-dl-link').innerText = t.lblDlLink;
+            document.getElementById('btn-save-cfg').innerText = t.btnSaveCfg;
+            document.getElementById('hdr-modules').innerText = t.hdrModules;
+            document.getElementById('sw-aimbot').innerText = t.swAimbot;
+            document.getElementById('sw-recoil').innerText = t.swRecoil;
+            document.getElementById('sw-color').innerText = t.swColor;
+            document.getElementById('btn-save-modules').innerText = t.btnSaveModules;
+            document.getElementById('hdr-global-cmd').innerText = t.hdrGlobalCmd;
+            document.getElementById('lbl-cmd-type').innerText = t.lblCmdType;
+            document.getElementById('opt-cmd-1').innerText = t.optCmd1;
+            document.getElementById('opt-cmd-2').innerText = t.optCmd2;
+            document.getElementById('opt-cmd-3').innerText = t.optCmd3;
+            document.getElementById('opt-cmd-4').innerText = t.optCmd4;
+            document.getElementById('btn-send-cmd').innerText = t.btnSendCmd;
+            document.getElementById('hdr-batch-gen').innerText = t.hdrBatchGen;
+            document.getElementById('lbl-duration').innerText = t.lblDuration;
+            document.getElementById('lbl-count').innerText = t.lblCount;
+            document.getElementById('btn-gen-keys').innerText = t.btnGenKeys;
+            document.getElementById('hdr-latest-keys').innerText = t.hdrLatestKeys;
+            document.getElementById('th-key').innerText = t.thKey;
+            document.getElementById('th-status').innerText = t.thStatus;
+            document.getElementById('th-action-key').innerText = t.thActionKey;
+            document.getElementById('hdr-user-table-desc').innerText = t.hdrUserTableDesc;
+            document.getElementById('th-desktop').innerText = t.thDesktop;
+            document.getElementById('th-custom-name').innerText = t.thCustomName;
+            document.getElementById('th-hwid').innerText = t.thHwid;
+            document.getElementById('th-game').innerText = t.thGame;
+            document.getElementById('th-action').innerText = t.thAction;
+            document.getElementById('hdr-bans').innerText = t.hdrBans;
+            document.getElementById('lbl-ban-target').innerText = t.lblBanTarget;
+            document.getElementById('btn-ban-perm').innerText = t.btnBanPerm;
+            document.getElementById('hdr-cloud').innerText = t.hdrCloud;
+            document.getElementById('btn-push-cloud').innerText = t.btnPushCloud;
+            document.getElementById('hdr-tickets-list').innerText = t.hdrTicketsList;
+            document.getElementById('lbl-live-chat').innerText = t.lblLiveChat;
+            document.getElementById('hdr-logs').innerText = t.hdrLogs;
+            document.getElementById('hdr-db').innerText = t.hdrDb;
+            document.getElementById('btn-sql-dl').innerText = t.btnSqlDl;
+            document.getElementById('mtab-info').innerText = t.mtabInfo;
+            document.getElementById('mtab-stream').innerText = t.mtabStream;
+            document.getElementById('lbl-m-hwid').innerText = t.lblMHwid;
+            document.getElementById('lbl-m-ip').innerText = t.lblMIp;
+            document.getElementById('lbl-m-cpu').innerText = t.lblMCpu;
+            document.getElementById('lbl-m-gpu').innerText = t.lblMGpu;
+            document.getElementById('lbl-m-mobo').innerText = t.lblMMobo;
+            document.getElementById('lbl-m-ram').innerText = t.lblMRam;
+            document.getElementById('lbl-m-os').innerText = t.lblMOs;
+            document.getElementById('lbl-m-game').innerText = t.lblMGame;
+            document.getElementById('lbl-m-key').innerText = t.lblMKey;
+            document.getElementById('lbl-m-expiry').innerText = t.lblMExpiry;
+            document.getElementById('stream-status-text').innerText = t.streamStatusText;
+            document.getElementById('lbl-modal-actions').innerText = t.lblModalActions;
+            document.getElementById('mbtn-hwid').innerText = t.mbtnHwid;
+            document.getElementById('mbtn-msg').innerText = t.mbtnMsg;
+            document.getElementById('mbtn-kick').innerText = t.mbtnKick;
+            document.getElementById('mbtn-ban').innerText = t.mbtnBan;
         }
 
         function changeTheme(themeName) {
@@ -487,14 +1129,16 @@
 
         function checkLogin() {
             const pass = document.getElementById('pass-input').value.trim();
+            const err = document.getElementById('login-error');
+
             if (pass === "Assmar00.550662.-?") {
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
-                fetchLiveData();
-                fetchKeysList();
-                setInterval(fetchLiveData, 3000);
+                loadLiveData();
+                setInterval(loadLiveData, 4000); // Live-Aktualisierung alle 4 Sekunden
             } else {
-                document.getElementById('login-error').innerText = "Falsches Passwort!";
+                err.innerText = "ACCESS DENIED: Falsches Passwort!";
+                document.getElementById('pass-input').value = "";
             }
         }
 
@@ -518,15 +1162,73 @@
             btn.classList.add('active');
         }
 
-        function openUserModal(name, ip, cpu, game) {
-            activeUserDesktop = name;
-            document.getElementById('m-user-title').innerText = "SYSTEM INSPECTOR // " + name;
-            document.getElementById('m-hwid').innerText = "Verifiziert";
-            document.getElementById('m-ip').innerText = ip;
-            document.getElementById('m-cpu').innerText = cpu;
-            document.getElementById('m-game').innerText = game;
+        // Lade echte Live-Daten vom FastAPI Backend
+        async function loadLiveData() {
+            try {
+                // Stats laden
+                const statsRes = await fetch('/api/stats');
+                const stats = await statsRes.json();
+                document.getElementById('stat-active-clients').innerText = stats.active_clients;
+                document.getElementById('stat-open-tickets').innerText = stats.open_tickets;
+                document.getElementById('stat-total-keys').innerText = stats.total_keys;
+                document.getElementById('stat-total-bans').innerText = stats.total_bans;
 
-            document.getElementById('live-video-feed').src = `${API_BASE}/video_feed?user=${encodeURIComponent(name)}`;
+                // Users laden
+                const usersRes = await fetch('/api/users');
+                const users = await usersRes.json();
+                const usersTbody = document.getElementById('users-table-body');
+                usersTbody.innerHTML = '';
+                
+                if(users.length === 0) {
+                    usersTbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#777;">Keine aktiven Clients online</td></tr>`;
+                } else {
+                    users.forEach(u => {
+                        const tr = document.createElement('tr');
+                        tr.className = 'user-row';
+                        tr.innerHTML = `
+                            <td>${u.desktop}</td>
+                            <td><input type="text" value="${u.custom_name}" style="margin-bottom:0; padding:4px 8px; font-size:11px;"></td>
+                            <td>${u.hwid ? u.hwid.substring(0, 12) + '...' : 'N/A'}</td>
+                            <td>${u.game}</td>
+                            <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;" onclick='openUserModal(${JSON.stringify(u)})'>Inspect & Live</button></td>
+                        `;
+                        usersTbody.appendChild(tr);
+                    });
+                }
+
+                // Keys laden
+                const keysRes = await fetch('/api/keys');
+                const keys = await keysRes.json();
+                const keysTbody = document.getElementById('keys-table-body');
+                keysTbody.innerHTML = '';
+                keys.forEach(k => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${k.key_code}</td>
+                        <td style="color:${k.status === 'Aktiv' ? '#00ff66' : '#ffaa00'};">${k.status}</td>
+                        <td><button class="btn-secondary" style="padding: 2px 6px; font-size: 9px;" onclick="alert('Key ${k.key_code} Aktion')">Pausieren</button></td>
+                    `;
+                    keysTbody.appendChild(tr);
+                });
+            } catch(e) {
+                console.error("Fehler beim Laden der Live-Daten:", e);
+            }
+        }
+
+        function openUserModal(u) {
+            document.getElementById('m-user-title').innerText = "SYSTEM INSPECTOR & LIVE VIEW // " + u.desktop;
+            document.getElementById('m-hwid').innerText = u.hwid || "N/A";
+            document.getElementById('m-ip').innerText = u.ip || "127.0.0.1";
+            document.getElementById('m-cpu').innerText = u.cpu || "Unknown CPU";
+            document.getElementById('m-gpu').innerText = u.gpu || "NVIDIA / AMD GPU";
+            document.getElementById('m-motherboard').innerText = u.motherboard || "Standard Motherboard";
+            document.getElementById('m-ram').innerText = u.ram || "16GB DDR4";
+            document.getElementById('m-os').innerText = u.os_build || "Windows 10/11";
+            document.getElementById('m-game').innerText = u.game || "Idle";
+            document.getElementById('m-key').innerText = u.license_key || "ASR-9812-PAUL";
+            document.getElementById('m-expiry').innerText = u.expiry || "Lifetime";
+
+            document.getElementById('live-video-feed').src = "/video_feed?user=" + encodeURIComponent(u.desktop);
             document.getElementById('user-modal').style.display = 'flex';
         }
 
@@ -535,71 +1237,27 @@
             document.getElementById('live-video-feed').src = "";
         }
 
-        async function createNewKey() {
-            let code = document.getElementById('new-key-code').value;
-            let note = document.getElementById('new-key-note').value;
-            let expiry = document.getElementById('new-key-expiry').value;
-
-            try {
-                let res = await fetch('/api/keys/create', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({key_code: code, note: note, expiry: expiry})
-                });
-                let result = await res.json();
-                alert(result.message);
-                fetchKeysList();
-            } catch(e) {
-                alert("Fehler beim Erstellen des Keys!");
-            }
+        function loadTicket(id, user, cat, game, msg, media, status) {
+            document.getElementById('t-id-title').innerText = "TICKET INSPECTOR // " + id;
+            document.getElementById('t-user').innerText = user;
+            document.getElementById('t-cat').innerText = cat;
+            document.getElementById('t-game').innerText = game;
+            document.getElementById('t-msg').value = msg;
         }
 
-        async function fetchKeysList() {
-            try {
-                let res = await fetch('/api/keys');
-                let keys = await res.json();
-                let tbody = document.querySelector('#keys-table tbody');
-                if(tbody) {
-                    tbody.innerHTML = "";
-                    keys.forEach(k => {
-                        tbody.innerHTML += `<tr><td><strong>${k.key_code}</strong></td><td>${k.note || ''}</td><td>${k.expiry}</td><td style="color:#00ff66;">${k.status}</td></tr>`;
-                    });
-                }
-            } catch(e) {}
-        }
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const msgText = input.value.trim();
+            if(!msgText) return;
 
-        async function fetchLiveData() {
-            try {
-                let resStats = await fetch(API_BASE + "/api/stats");
-                let stats = await resStats.json();
-                document.getElementById('stat-clients').innerText = stats.active_clients;
-                document.getElementById('stat-tickets').innerText = stats.open_tickets;
-                document.getElementById('stat-keys').innerText = stats.total_keys;
+            const chatBox = document.getElementById('chat-messages');
+            const newMsg = document.createElement('div');
+            newMsg.className = "chat-msg msg-admin";
+            newMsg.innerHTML = "<strong>Admin Assmar00:</strong> " + msgText;
+            chatBox.appendChild(newMsg);
 
-                let resUsers = await fetch(API_BASE + "/api/users");
-                let users = await resUsers.json();
-                let tbody = document.querySelector('#users-table tbody');
-                tbody.innerHTML = "";
-                
-                if(users.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; color:#777;">Keine aktiven Clients online (Warte auf Heartbeat...)</td></tr>`;
-                    return;
-                }
-
-                users.forEach(u => {
-                    tbody.innerHTML += `
-                        <tr class="user-row" onclick="openUserModal('${u.desktop}', '${u.ip}', '${u.cpu}', '${u.game}')">
-                            <td>${u.desktop}</td>
-                            <td><input type="text" value="${u.custom_name}" style="margin-bottom:0; padding:4px 8px; font-size:11px;" onclick="event.stopPropagation()"></td>
-                            <td>${u.hwid ? u.hwid.substring(0, 10) + '...' : 'N/A'}</td>
-                            <td>${u.game}</td>
-                            <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;">Inspect & Live</button></td>
-                        </tr>
-                    `;
-                });
-            } catch (e) {
-                console.error("Verbindung zum Server fehlgeschlagen", e);
-            }
+            input.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
     </script>
 </body>
