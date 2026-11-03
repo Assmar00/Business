@@ -50,7 +50,6 @@ def init_db():
         )
     """)
     
-    # Standard-Werte für Stream im Browser einstellbar
     defaults = {
         "stream_fps": "30",
         "stream_quality": "75",
