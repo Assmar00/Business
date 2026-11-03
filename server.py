@@ -6,9 +6,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import base64
 
-app = FastAPI(title="Assmar00 God-Mode Complete Backend", version="7.0")
+app = FastAPI(title="Assmar00 God-Mode Clean Backend", version="8.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -19,7 +18,6 @@ app.add_middleware(
 )
 
 DB_FILE = "database.db"
-active_streams = {} # Speichert die letzten Live-Frames der Clients im Arbeitsspeicher
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -32,7 +30,6 @@ def init_db():
             ip TEXT,
             cpu TEXT,
             game TEXT,
-            fps INTEGER DEFAULT 0,
             last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -45,26 +42,26 @@ def init_db():
         )
     """)
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tickets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT,
+            category TEXT,
+            game TEXT,
+            message TEXT,
+            status TEXT DEFAULT 'Offen'
+        )
+    """)
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS global_settings (
             key TEXT PRIMARY KEY,
             value TEXT
         )
     """)
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS bans (
-            identifier TEXT PRIMARY KEY
-        )
-    """)
     
-    defaults = {
-        "aimbot_allowed": "true",
-        "stream_allowed": "true",
-        "mass_command": "",
-        "min_version": "1.0.0"
-    }
-    for k, v in defaults.items():
-        cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES (?, ?)", (k, v))
-        
+    # Standard-Einträge
+    cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('mass_command', '')")
+    cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('aimbot_allowed', 'true')")
+    
     cursor.execute("""
         INSERT OR IGNORE INTO keys (key_code, note, expiry, status)
         VALUES ('ASR-9812-PAUL', 'Master Standard Key', '2026-12-31', 'Aktiv')
@@ -81,8 +78,6 @@ class ClientData(BaseModel):
     ip: str = "127.0.0.1"
     cpu: str = "Unknown"
     game: str = "Idle"
-    fps: int = 0
-    frame_b64: str = ""
 
 @app.get("/", response_class=HTMLResponse)
 def serve_admin():
@@ -90,7 +85,7 @@ def serve_admin():
         with open("admin.html", "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
-        return "<h3>Fehler: admin.html wurde im GitHub-Repository nicht gefunden!</h3>"
+        return "<h3>Fehler: admin.html nicht gefunden!</h3>"
 
 @app.get("/api/stats")
 def get_stats():
@@ -98,12 +93,12 @@ def get_stats():
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM clients")
     active_clients = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM tickets WHERE status='Offen'")
+    open_tickets = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(*) FROM keys")
     total_keys = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM bans")
-    total_bans = cursor.fetchone()[0]
     conn.close()
-    return {"active_clients": active_clients, "open_tickets": 0, "total_keys": total_keys, "total_bans": total_bans}
+    return {"active_clients": active_clients, "open_tickets": open_tickets, "total_keys": total_keys}
 
 @app.get("/api/users")
 def get_users():
@@ -119,57 +114,36 @@ def get_users():
 def client_heartbeat(data: ClientData):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    
-    cursor.execute("SELECT * FROM bans WHERE identifier=? OR identifier=?", (data.hwid, data.ip))
-    if cursor.fetchone():
-        conn.close()
-        raise HTTPException(status_code=403, detail="Client is banned")
-
     cursor.execute("""
-        INSERT INTO clients (desktop, custom_name, hwid, ip, cpu, game, fps)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO clients (desktop, custom_name, hwid, ip, cpu, game)
+        VALUES (?, ?, ?, ?, ?, ?)
         ON CONFLICT(desktop) DO UPDATE SET
         custom_name=excluded.custom_name,
         hwid=excluded.hwid,
         ip=excluded.ip,
         cpu=excluded.cpu,
         game=excluded.game,
-        fps=excluded.fps,
         last_seen=CURRENT_TIMESTAMP
-    """, (data.desktop, data.custom_name, data.hwid, data.ip, data.cpu, data.game, data.fps))
+    """, (data.desktop, data.custom_name, data.hwid, data.ip, data.cpu, data.game))
     conn.commit()
     
-    if data.frame_b64:
-        try:
-            img_bytes = base64.b64decode(data.frame_b64)
-            active_streams[data.desktop] = img_bytes
-        except:
-            pass
-
-    cursor.execute("SELECT key, value FROM global_settings")
-    settings_rows = cursor.fetchall()
-    global_cfg = {row[0]: row[1] for row in settings_rows}
-    conn.close()
+    # Befehle auslesen
+    cursor.execute("SELECT value FROM global_settings WHERE key='mass_command'")
+    cmd_row = cursor.fetchone()
+    mass_cmd = cmd_row[0] if cmd_row else ""
     
-    return {"status": "success", "settings": global_cfg}
+    conn.close()
+    return {"status": "success", "command": mass_cmd}
 
-@app.get("/video_feed")
-def video_feed(user: str):
-    def generate_stream():
-        while True:
-            if user in active_streams and active_streams[user]:
-                frame_bytes = active_streams[user]
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-            else:
-                img = np.zeros((480, 640, 3), dtype=np.uint8)
-                cv2.putText(img, f"Warte auf Stream: {user}", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                _, encoded = cv2.imencode('.jpg', img)
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
-            time.sleep(0.1)
-
-    return StreamingResponse(generate_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
+@app.get("/api/keys")
+def get_keys():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM keys")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
 
 @app.post("/api/keys/create")
 def create_key_api(data: dict):
@@ -182,16 +156,6 @@ def create_key_api(data: dict):
     conn.commit()
     conn.close()
     return {"status": "success", "message": f"Key {key_code} erstellt!"}
-
-@app.get("/api/keys")
-def get_keys():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM keys")
-    rows = cursor.fetchall()
-    conn.close()
-    return [dict(row) for row in rows]
 
 @app.post("/verify")
 def verify_license_endpoint(data: dict):
