@@ -264,27 +264,27 @@
         <sidebar>
             <div class="logo">ASSMAR00</div>
             
-            <div class="nav-category">1. Kern-Steuerung</div>
-            <button class="nav-btn active" onclick="switchTab('dashboard', this)">📊 Telemetrie & Übersicht</button>
-            <button class="nav-btn" onclick="switchTab('analytics', this)">📈 User Analytik & Graphen</button>
-            <button class="nav-btn" onclick="switchTab('settings', this)">🛠️ Server-Kern & Force-Update</button>
-            <button class="nav-btn" onclick="switchTab('features', this)">⚙️ Remote Feature Switches</button>
-            <button class="nav-btn" onclick="switchTab('commands', this)">⚡ Globaler Massen-Befehl</button>
+            <div class="nav-category" id="cat-core">1. Kern-Steuerung</div>
+            <button class="nav-btn active" onclick="switchTab('dashboard', this)" id="nav-telemetry">📊 Telemetrie & Übersicht</button>
+            <button class="nav-btn" onclick="switchTab('analytics', this)" id="nav-analytics">📈 User Analytik & Graphen</button>
+            <button class="nav-btn" onclick="switchTab('settings', this)" id="nav-server">🛠️ Server-Kern & Force-Update</button>
+            <button class="nav-btn" onclick="switchTab('features', this)" id="nav-features">⚙️ Remote Feature Switches</button>
+            <button class="nav-btn" onclick="switchTab('commands', this)" id="nav-commands">⚡ Globaler Massen-Befehl</button>
 
-            <div class="nav-category">2. Lizenz-Engine</div>
-            <button class="nav-btn" onclick="switchTab('licenses', this)">🔑 Master Key & God-Mode Manager</button>
+            <div class="nav-category" id="cat-license">2. Lizenz-Engine</div>
+            <button class="nav-btn" onclick="switchTab('licenses', this)" id="nav-keys">🔑 Master Key & God-Mode Manager</button>
 
-            <div class="nav-category">3. Benutzer & Hardware</div>
-            <button class="nav-btn" onclick="switchTab('users', this)">👥 Desktop-Namen & Sessions</button>
-            <button class="nav-btn" onclick="switchTab('bans', this)">⛔ Sperrliste & IP-Sperren</button>
+            <div class="nav-category" id="cat-users">3. Benutzer & Hardware</div>
+            <button class="nav-btn" onclick="switchTab('users', this)" id="nav-hwid">👥 Desktop-Namen & Sessions</button>
+            <button class="nav-btn" onclick="switchTab('bans', this)" id="nav-bans">⛔ Sperrliste & IP-Sperren</button>
 
-            <div class="nav-category">4. Automation & Support</div>
-            <button class="nav-btn" onclick="switchTab('cloudconfigs', this)">☁️ Cloud Model & Script Push</button>
-            <button class="nav-btn" onclick="switchTab('tickets', this)">🎫 Live Support Tickets</button>
+            <div class="nav-category" id="cat-cloud">4. Automation & Support</div>
+            <button class="nav-btn" onclick="switchTab('cloudconfigs', this)" id="nav-cloud">☁️ Cloud Model & Script Push</button>
+            <button class="nav-btn" onclick="switchTab('tickets', this)" id="nav-tickets">🎫 Live Support Tickets</button>
 
-            <div class="nav-category">5. System-Admin</div>
-            <button class="nav-btn" onclick="switchTab('logs', this)">🛡️ Protokolle & Audit Logs</button>
-            <button class="nav-btn" onclick="switchTab('database', this)">💾 SQL Backup & Konsole</button>
+            <div class="nav-category" id="cat-logs">5. System-Admin</div>
+            <button class="nav-btn" onclick="switchTab('logs', this)" id="nav-logs">🛡️ Protokolle & Audit Logs</button>
+            <button class="nav-btn" onclick="switchTab('database', this)" id="nav-db">💾 SQL Backup & Konsole</button>
         </sidebar>
 
         <main>
@@ -362,13 +362,34 @@
                 </div>
             </div>
 
-            <!-- 6. LICENSES -->
+            <!-- 6. LICENSES (Mit echter Web-Erstellung) -->
             <div id="licenses" class="tab-content">
-                <div class="card">
-                    <h2>Master Key & God-Mode Manager</h2>
-                    <label>Neuen Key generieren</label>
-                    <input type="text" value="ASR-GODMODE-NEW">
-                    <button onclick="alert('Key erstellt!')">In Datenbank speichern</button>
+                <div class="grid-2">
+                    <div class="card">
+                        <h2>Neuen Key generieren</h2>
+                        <label>Key Code</label>
+                        <input type="text" id="new-key-code" value="ASR-GODMODE-NEW">
+                        <label>Notiz / Name</label>
+                        <input type="text" id="new-key-note" placeholder="z.B. Für Freund">
+                        <label>Ablaufdatum</label>
+                        <input type="date" id="new-key-expiry" value="2026-12-31">
+                        <button onclick="createNewKey()">Key in Datenbank speichern</button>
+                    </div>
+
+                    <div class="card" style="max-height: 480px; overflow-y: auto;">
+                        <h2>Vorhandene Keys</h2>
+                        <table id="keys-table">
+                            <thead>
+                                <tr>
+                                    <th>Key Code</th>
+                                    <th>Notiz</th>
+                                    <th>Ablauf</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -442,15 +463,26 @@
         const API_BASE = ""; 
         let activeUserDesktop = "";
 
+        const translations = {
+            de: { welcome: "WILLKOMMEN ZURÜCK, ASSMAR00", restricted: "Eingeschränkter Admin-Zugriff", loginBtn: "Zugriff Gewähren" },
+            en: { welcome: "WELCOME BACK, ASSMAR00", restricted: "Restricted Admin Access", loginBtn: "Access Granted" },
+            it: { welcome: "BENVENUTO TORNATO, ASSMAR00", restricted: "Accesso Amministratore Riservato", loginBtn: "Accesso Consentito" }
+        };
+
+        function changeLanguage(lang) {
+            const t = translations[lang];
+            if(t) {
+                document.getElementById('txt-welcome').innerText = t.welcome;
+                document.getElementById('txt-restricted').innerText = t.restricted;
+                document.getElementById('btn-login').innerText = t.loginBtn;
+            }
+        }
+
         function changeTheme(themeName) {
             document.body.className = '';
             if (themeName !== 'purple') {
                 document.body.classList.add('theme-' + themeName);
             }
-        }
-
-        function changeLanguage(lang) {
-            // Sprachumschaltung
         }
 
         function checkLogin() {
@@ -459,11 +491,18 @@
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
                 fetchLiveData();
+                fetchKeysList();
                 setInterval(fetchLiveData, 3000);
             } else {
                 document.getElementById('login-error').innerText = "Falsches Passwort!";
             }
         }
+
+        document.addEventListener('keypress', function (e) {
+            if (e.key === 'Enter' && document.getElementById('login-overlay').style.display !== 'none') {
+                checkLogin();
+            }
+        });
 
         function switchTab(tabId, btn) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -494,6 +533,39 @@
         function closeUserModal() {
             document.getElementById('user-modal').style.display = 'none';
             document.getElementById('live-video-feed').src = "";
+        }
+
+        async function createNewKey() {
+            let code = document.getElementById('new-key-code').value;
+            let note = document.getElementById('new-key-note').value;
+            let expiry = document.getElementById('new-key-expiry').value;
+
+            try {
+                let res = await fetch('/api/keys/create', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({key_code: code, note: note, expiry: expiry})
+                });
+                let result = await res.json();
+                alert(result.message);
+                fetchKeysList();
+            } catch(e) {
+                alert("Fehler beim Erstellen des Keys!");
+            }
+        }
+
+        async function fetchKeysList() {
+            try {
+                let res = await fetch('/api/keys');
+                let keys = await res.json();
+                let tbody = document.querySelector('#keys-table tbody');
+                if(tbody) {
+                    tbody.innerHTML = "";
+                    keys.forEach(k => {
+                        tbody.innerHTML += `<tr><td><strong>${k.key_code}</strong></td><td>${k.note || ''}</td><td>${k.expiry}</td><td style="color:#00ff66;">${k.status}</td></tr>`;
+                    });
+                }
+            } catch(e) {}
         }
 
         async function fetchLiveData() {
