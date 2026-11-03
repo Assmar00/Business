@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Dynamic Control Backend", version="11.0")
+app = FastAPI(title="Assmar00 Dynamic Control Backend", version="12.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -213,7 +213,7 @@ def video_feed(user: str):
                 _, encoded = cv2.imencode('.jpg', img)
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
-            time.sleep(0.03)
+            time.sleep(0.01)
     return StreamingResponse(generate_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 @app.post("/verify")
