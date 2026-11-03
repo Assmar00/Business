@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Dynamic Control Backend", version="13.0")
+app = FastAPI(title="Assmar00 Highspeed Stream Backend", version="14.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -60,8 +60,8 @@ def init_db():
     
     defaults = {
         "stream_fps": "30",
-        "stream_quality": "75",
-        "stream_res": "1080p",
+        "stream_quality": "65",
+        "stream_res": "720p",
         "mass_command": "",
         "min_version": "1.0.0"
     }
