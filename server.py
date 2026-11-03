@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Highspeed Backend", version="15.0")
+app = FastAPI(title="Assmar00 Local Highspeed Backend", version="16.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -60,8 +60,10 @@ def init_db():
     
     defaults = {
         "stream_fps": "30",
-        "stream_quality": "70",
-        "stream_res": "720p"
+        "stream_quality": "65",
+        "stream_res": "720p",
+        "mass_command": "",
+        "min_version": "1.0.0"
     }
     for k, v in defaults.items():
         cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES (?, ?)", (k, v))
@@ -211,9 +213,13 @@ def video_feed(user: str):
                 _, encoded = cv2.imencode('.jpg', img)
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
-            time.sleep(0.01)
+            time.sleep(0.005)
     return StreamingResponse(generate_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 @app.post("/verify")
 def verify_license_endpoint(data: dict):
     return {"success": True, "message": "Key validiert", "expiry": "2026-12-31"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=True)
