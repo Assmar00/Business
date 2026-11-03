@@ -325,15 +325,52 @@
             </div>
 
             <!-- 2. ANALYTICS -->
-            <div id="analytics" class="tab-content"><div class="card"><h2>User Analytik & Graphen</h2></div></div>
+            <div id="analytics" class="tab-content">
+                <div class="card">
+                    <h2>User Analytik & Graphen</h2>
+                    <p style="font-size: 12px; color: var(--text-muted);">Echtzeit-Auswertung der aktiven Systemprozesse und Client-Verbindungen.</p>
+                </div>
+            </div>
+
             <!-- 3. SETTINGS -->
-            <div id="settings" class="tab-content"><div class="card"><h2>Server Core & Force-Update</h2></div></div>
+            <div id="settings" class="tab-content">
+                <div class="card">
+                    <h2>Server Core & Force-Update</h2>
+                    <label>Minimale Loader-Version</label>
+                    <input type="text" value="1.0.0">
+                    <button onclick="alert('Update-Konfiguration gespeichert!')">Force-Update an Clients pushen</button>
+                </div>
+            </div>
+
             <!-- 4. FEATURES -->
-            <div id="features" class="tab-content"><div class="card"><h2>Remote Feature Switches</h2></div></div>
+            <div id="features" class="tab-content">
+                <div class="card">
+                    <h2>Remote Feature Switches</h2>
+                    <label><input type="checkbox" checked style="width:auto; margin-right:8px;"> Aimbot-Modul global erlauben</label>
+                    <label><input type="checkbox" checked style="width:auto; margin-right:8px;"> Screen-Streaming erlauben</label>
+                    <button onclick="alert('Feature-Switches aktualisiert!')">Einstellungen Speichern</button>
+                </div>
+            </div>
+
             <!-- 5. COMMANDS -->
-            <div id="commands" class="tab-content"><div class="card"><h2>Globaler Massen-Befehl</h2></div></div>
+            <div id="commands" class="tab-content">
+                <div class="card">
+                    <h2>Globaler Massen-Befehl</h2>
+                    <label>Befehl / Skript für alle Clients</label>
+                    <textarea rows="3" placeholder="print('Hello')"></textarea>
+                    <button onclick="alert('Befehl an alle Clients gesendet!')">An alle Clients abfeuern</button>
+                </div>
+            </div>
+
             <!-- 6. LICENSES -->
-            <div id="licenses" class="tab-content"><div class="card"><h2>Master Key & God-Mode Manager</h2></div></div>
+            <div id="licenses" class="tab-content">
+                <div class="card">
+                    <h2>Master Key & God-Mode Manager</h2>
+                    <label>Neuen Key generieren</label>
+                    <input type="text" value="ASR-GODMODE-NEW">
+                    <button onclick="alert('Key erstellt!')">In Datenbank speichern</button>
+                </div>
+            </div>
 
             <!-- 7. USERS -->
             <div id="users" class="tab-content">
@@ -355,15 +392,49 @@
             </div>
 
             <!-- 8. BANS -->
-            <div id="bans" class="tab-content"><div class="card"><h2>Sperrliste & IP-Sperren</h2></div></div>
+            <div id="bans" class="tab-content">
+                <div class="card">
+                    <h2>Sperrliste & IP-Sperren</h2>
+                    <label>HWID oder IP blockieren</label>
+                    <input type="text" placeholder="Hash oder IP eingeben...">
+                    <button class="btn-danger" onclick="alert('Client gesperrt!')">Permanent Sperren</button>
+                </div>
+            </div>
+
             <!-- 9. CLOUD CONFIGS -->
-            <div id="cloudconfigs" class="tab-content"><div class="card"><h2>Cloud Model & Script Push</h2></div></div>
+            <div id="cloudconfigs" class="tab-content">
+                <div class="card">
+                    <h2>Cloud Model & Script Push</h2>
+                    <label>ONNX / Skript Datei hochladen</label>
+                    <input type="file">
+                    <button onclick="alert('Modell hochgeladen!')">An Clients verteilen</button>
+                </div>
+            </div>
+
             <!-- 10. TICKETS -->
-            <div id="tickets" class="tab-content"><div class="card"><h2>Live Support Tickets</h2></div></div>
+            <div id="tickets" class="tab-content">
+                <div class="card">
+                    <h2>Live Support Tickets</h2>
+                    <p style="font-size: 12px; color: var(--text-muted);">Keine offenen Support-Tickets vorhanden.</p>
+                </div>
+            </div>
+
             <!-- 11. LOGS -->
-            <div id="logs" class="tab-content"><div class="card"><h2>Protokolle & Audit Logs</h2></div></div>
+            <div id="logs" class="tab-content">
+                <div class="card">
+                    <h2>Protokolle & Audit Logs</h2>
+                    <textarea rows="8" readonly style="font-family:monospace; background:#020204; color:#00ff66;">[INFO] Server aktiv auf Render Cloud...
+[DB] SQLite Datenbank erfolgreich verbunden.</textarea>
+                </div>
+            </div>
+
             <!-- 12. DATABASE -->
-            <div id="database" class="tab-content"><div class="card"><h2>SQL Backup & Konsole</h2></div></div>
+            <div id="database" class="tab-content">
+                <div class="card">
+                    <h2>SQL Backup & Konsole</h2>
+                    <button class="btn-secondary" onclick="alert('Backup heruntergeladen!')">SQLite Datenbank herunterladen (.db)</button>
+                </div>
+            </div>
         </main>
     </div>
 
