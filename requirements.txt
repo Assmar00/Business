@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pydantic
+mss
+opencv-python-headless
+numpy
+discord.py
+flask
+requests
