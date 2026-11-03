@@ -3,13 +3,13 @@ import sqlite3
 import cv2
 import numpy as np
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Eco Backend", version="22.0")
+app = FastAPI(title="Assmar00 Replay Buffer Backend", version="23.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,7 +20,7 @@ app.add_middleware(
 )
 
 DB_FILE = "database.db"
-active_streams = {}
+saved_clips = {}
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -56,13 +56,10 @@ def init_db():
             expiry TEXT,
             status TEXT DEFAULT 'Aktiv'
         )
-    """)
+    """ )
     
     defaults = {
-        "stream_fps": "15",
-        "stream_quality": "50",
-        "stream_res": "480p",
-        "mass_command": "",
+        "command": "none",
         "min_version": "1.0.0"
     }
     for k, v in defaults.items():
@@ -91,11 +88,10 @@ class ClientData(BaseModel):
     license_key: str = ""
     expiry: str = "Lifetime"
     fps: int = 0
-    frame_b64: str = ""
 
-class FrameData(BaseModel):
+class ClipData(BaseModel):
     desktop: str
-    frame_b64: str
+    clip_b64: str
 
 @app.get("/", response_class=HTMLResponse)
 def serve_admin():
@@ -150,16 +146,6 @@ def get_stats():
         "total_bans": 0
     }
 
-@app.get("/api/keys")
-def get_keys():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM keys")
-    rows = cursor.fetchall()
-    conn.close()
-    return [dict(row) for row in rows]
-
 @app.post("/api/client/heartbeat")
 def client_heartbeat(data: ClientData):
     conn = sqlite3.connect(DB_FILE)
@@ -191,30 +177,17 @@ def client_heartbeat(data: ClientData):
     
     return {"status": "success", "settings": global_cfg}
 
-@app.post("/api/client/frame")
-def client_frame(data: FrameData):
-    if data.frame_b64:
-        try:
-            active_streams[data.desktop] = base64.b64decode(data.frame_b64)
-        except:
-            pass
+@app.post("/api/client/clip")
+def receive_clip(data: ClipData):
+    if data.clip_b64:
+        saved_clips[data.desktop] = data.clip_b64
     return {"status": "success"}
 
-@app.get("/video_feed")
-def video_feed(user: str):
-    def generate_stream():
-        while True:
-            if user in active_streams and active_streams[user]:
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + active_streams[user] + b'\r\n')
-            else:
-                img = np.zeros((480, 640, 3), dtype=np.uint8)
-                cv2.putText(img, f"Warte auf Stream: {user}", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
-                _, encoded = cv2.imencode('.jpg', img)
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
-            time.sleep(0.05)
-    return StreamingResponse(generate_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
+@app.get("/api/get_clip")
+def get_clip(user: str):
+    if user in saved_clips:
+        return {"clip_b64": saved_clips[user]}
+    return {"clip_b64": ""}
 
 @app.post("/verify")
 def verify_license_endpoint(data: dict):
