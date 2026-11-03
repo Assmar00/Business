@@ -144,10 +144,13 @@ def client_heartbeat(data: ClientData):
     """, (data.desktop, data.custom_name, data.hwid, data.ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.game, data.license_key, data.expiry, data.fps))
     conn.commit()
     conn.close()
-    
-    # Prüfen, ob der Admin gerade diesen spezifischen Client anschaut
-    should_stream = data.desktop in viewers_watching
-    return {"status": "success", "stream_active": should_stream}
+    return {"status": "success"}
+
+@app.get("/api/check_signal")
+def check_signal(user: str):
+    # Prüft, ob der Admin gerade den Stream für diesen User im Browser geöffnet hat
+    is_watching = user in viewers_watching
+    return {"stream": is_watching}
 
 @app.post("/api/client/frame")
 def client_frame(data: FrameData):
@@ -160,7 +163,7 @@ def client_frame(data: FrameData):
 
 @app.get("/video_feed")
 def video_feed(user: str):
-    viewers_watching.add(user) # Admin schaut zu -> Signal an Client aktivieren
+    viewers_watching.add(user) # Signalisiert dem Client, dass er aufwachen und streamen soll
     def generate_stream():
         try:
             while True:
@@ -169,13 +172,13 @@ def video_feed(user: str):
                            b'Content-Type: image/jpeg\r\n\r\n' + active_streams[user] + b'\r\n')
                 else:
                     img = np.zeros((480, 640, 3), dtype=np.uint8)
-                    cv2.putText(img, f"Verbinde mit {user}...", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+                    cv2.putText(img, f"Wache auf für {user}...", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
                     _, encoded = cv2.imencode('.jpg', img)
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
                 time.sleep(0.1)
         finally:
-            # Wenn Admin den Browser schließt, fliegt der User aus der Viewer-Liste raus -> Client stoppt sofort Aufnahme!
+            # Sobald der Admin den Browser/Tab schließt, geht der Client sofort wieder schlafen
             if user in viewers_watching:
                 viewers_watching.remove(user)
             if user in active_streams:
