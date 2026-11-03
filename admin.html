@@ -171,7 +171,12 @@
         button { background: var(--accent-color); color: #ffffff; border: none; padding: 9px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
         button:hover { background: var(--accent-hover); box-shadow: 0 0 10px var(--accent-glow); }
 
+        .btn-danger { background: #7a151f; }
+        .btn-danger:hover { background: #a31c2a; }
         .btn-secondary { background: var(--input-bg); color: #ccccdd; border: 1px solid var(--input-border); }
+        .btn-warning { background: #b8860b; color: #fff; }
+        .btn-warning:hover { background: #daa520; }
+        .btn-sm { padding: 4px 8px; font-size: 10px; margin-right: 3px; margin-bottom: 3px; }
 
         table { width: 100%; border-collapse: collapse; margin-top: 5px; }
         th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--card-border); font-size: 11px; }
@@ -192,7 +197,7 @@
 
         .modal-card {
             background: var(--card-bg); border: 1px solid var(--accent-color); border-radius: 14px;
-            width: 900px; max-height: 95vh; overflow-y: auto; padding: 25px; box-shadow: 0 0 30px var(--accent-glow);
+            width: 850px; max-height: 90vh; overflow-y: auto; padding: 25px; box-shadow: 0 0 30px var(--accent-glow);
         }
 
         .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; margin-bottom: 18px; }
@@ -210,13 +215,26 @@
         .msinfo-item span { color: var(--text-muted); display: block; font-size: 9px; text-transform: uppercase; margin-bottom: 4px; }
         .msinfo-item strong { color: var(--text-main); font-size: 11px; word-break: break-all; }
 
-        /* STREAM STEUERUNG */
-        .stream-controls { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; background: var(--input-bg); padding: 10px; border-radius: 8px; border: 1px solid var(--input-border); }
-        .stream-controls select, .stream-controls button { margin-bottom: 0; padding: 6px 12px; font-size: 11px; }
         .screen-stream-box {
-            background: #020204; border: 1px solid var(--accent-color); border-radius: 8px; height: 420px;
+            background: #020204; border: 1px solid var(--accent-color); border-radius: 8px; height: 380px;
             display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden;
         }
+
+        .stream-overlay-info {
+            position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 4px 8px;
+            border-radius: 4px; font-family: monospace; font-size: 10px; color: var(--accent-color); border: 1px solid var(--input-border); z-index: 10;
+        }
+
+        .chat-box {
+            background: #04030a; border: 1px solid var(--card-border); border-radius: 8px; height: 220px;
+            overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;
+        }
+        .chat-msg { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 11px; font-family: monospace; }
+        .msg-user { background: #1a1829; align-self: flex-start; border: 1px solid #2d2948; color: #ddd; }
+        .msg-admin { background: var(--accent-color); color: #fff; align-self: flex-end; font-weight: bold; }
+        .ticket-badge { padding: 3px 6px; border-radius: 4px; font-size: 9px; font-weight: bold; }
+        .badge-bug { background: #8b0000; color: #ffaaaa; }
+        .badge-feature { background: #00558b; color: #aaddff; }
     </style>
 </head>
 <body>
@@ -243,52 +261,45 @@
 
             <div class="modal-tabs">
                 <button class="modal-tab-btn active" onclick="switchModalTab('info', this)" id="mtab-info">💻 System Info (msinfo32)</button>
-                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)" id="mtab-stream">🔴 Live Screen View</button>
+                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)" id="mtab-stream">🔴 Live Screen View (15 FPS)</button>
             </div>
 
             <div id="modal-tab-info" class="modal-tab-pane active">
                 <div class="msinfo-grid">
-                    <div class="msinfo-item"><span>Hardware ID (HWID Hash)</span><strong id="m-hwid">--</strong></div>
-                    <div class="msinfo-item"><span>IP Adresse & Standort</span><strong id="m-ip">--</strong></div>
-                    <div class="msinfo-item"><span>Prozessor (CPU)</span><strong id="m-cpu">--</strong></div>
-                    <div class="msinfo-item"><span>Grafikkarte (GPU)</span><strong id="m-gpu">--</strong></div>
-                    <div class="msinfo-item"><span>Mainboard Seriennummer</span><strong id="m-motherboard">--</strong></div>
-                    <div class="msinfo-item"><span>Arbeitsspeicher (RAM)</span><strong id="m-ram">--</strong></div>
-                    <div class="msinfo-item"><span>Betriebssystem (OS Build)</span><strong id="m-os">--</strong></div>
-                    <div class="msinfo-item"><span>Aktives Game-Profil</span><strong id="m-game">--</strong></div>
-                    <div class="msinfo-item"><span>Lizenz-Schlüssel</span><strong id="m-key">--</strong></div>
-                    <div class="msinfo-item"><span>Laufzeit Verbleibend</span><strong id="m-expiry">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-hwid">Hardware ID (HWID Hash)</span><strong id="m-hwid">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-ip">IP Adresse & Standort</span><strong id="m-ip">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-cpu">Prozessor (CPU)</span><strong id="m-cpu">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-gpu">Grafikkarte (GPU)</span><strong id="m-gpu">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-mobo">Mainboard Seriennummer</span><strong id="m-motherboard">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-ram">Arbeitsspeicher (RAM)</span><strong id="m-ram">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-os">Betriebssystem (OS Build)</span><strong id="m-os">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-game">Aktives Game-Profil</span><strong id="m-game">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-key">Lizenz-Schlüssel</span><strong id="m-key">--</strong></div>
+                    <div class="msinfo-item"><span id="lbl-m-expiry">Laufzeit Verbleibend</span><strong id="m-expiry">--</strong></div>
                 </div>
             </div>
 
             <div id="modal-tab-stream" class="modal-tab-pane">
-                <div class="stream-controls">
-                    <label style="color:#fff; font-size:10px;">FPS:</label>
-                    <select id="stream-fps" onchange="updateStreamSettings()">
-                        <option value="10">10 FPS (Low)</option>
-                        <option value="15" selected>15 FPS (Standard)</option>
-                        <option value="30">30 FPS (High)</option>
-                    </select>
-
-                    <label style="color:#fff; font-size:10px; margin-left:10px;">AUFLÖSUNG:</label>
-                    <select id="stream-res" onchange="updateStreamSettings()">
-                        <option value="480p">480p (SD)</option>
-                        <option value="720p" selected>720p (HD)</option>
-                        <option value="1080p">1080p (Full HD)</option>
-                    </select>
-
-                    <button class="btn-secondary" onclick="toggleFullscreen()" style="margin-left:auto;">⛶ Vollbild</button>
-                </div>
-
-                <div class="screen-stream-box" id="stream-wrapper">
+                <div class="screen-stream-box">
+                    <div class="stream-overlay-info" id="stream-status-text">STREAM: LIVE // 720p @ 15 FPS // GHOST MODE ACTIVE</div>
                     <img id="live-video-feed" src="" alt="Warte auf Client-Stream Verbindung..." style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 15px;">
+                <h3 style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;" id="lbl-modal-actions">Einzel-User Aktionen</h3>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn-secondary" onclick="alert('HWID Reset durchgeführt!')" id="mbtn-hwid">HWID Reset</button>
+                    <button class="btn-secondary" onclick="prompt('Nachricht an User senden:')" id="mbtn-msg">Screen-Message Senden</button>
+                    <button class="btn-danger" onclick="alert('User gekickt!')" id="mbtn-kick">Session Kicken</button>
+                    <button class="btn-danger" style="background:#8b0000;" onclick="alert('User permanent gebannt!')" id="mbtn-ban">HWID Bannen</button>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- MAIN PANEL CONTAINER -->
-    <div id="app-container">
+    <div id="app-container" style="display: none;">
         <sidebar>
             <div class="logo">ASSMAR00</div>
             
@@ -340,80 +351,160 @@
             <!-- 1. DASHBOARD -->
             <div id="dashboard" class="tab-content active">
                 <div class="grid-4" style="margin-bottom: 20px;">
-                    <div class="stats-box"><label>Aktive Clients</label><div class="stats-num" id="stat-clients">0</div></div>
-                    <div class="stats-box"><label>Offene Tickets</label><div class="stats-num" id="stat-tickets" style="color:var(--accent-color);">0</div></div>
-                    <div class="stats-box"><label>Keys Gesamt</label><div class="stats-num" id="stat-keys">0</div></div>
-                    <div class="stats-box"><label>Sperren Heute</label><div class="stats-num" style="color:#ff4455;">0</div></div>
+                    <div class="stats-box"><label id="lbl-active-clients">Aktive Clients</label><div class="stats-num">42</div></div>
+                    <div class="stats-box"><label id="lbl-open-tickets">Offene Tickets</label><div class="stats-num" style="color:var(--accent-color);">3</div></div>
+                    <div class="stats-box"><label id="lbl-total-keys">Keys Gesamt</label><div class="stats-num">1,280</div></div>
+                    <div class="stats-box"><label id="lbl-bans-today">Sperren Heute</label><div class="stats-num" style="color:#ff4455;">3</div></div>
+                </div>
+                <div class="card">
+                    <h2 id="hdr-emergency">Notfall-Steuerung</h2>
+                    <button class="btn-danger" onclick="alert('Kill Switch Executed!')" id="btn-killswitch">🚨 EMERGENCY KILL-SWITCH</button>
+                    <button class="btn-secondary" onclick="alert('Maintenance Toggled!')" style="margin-left: 10px;" id="btn-maintenance">Wartungsmodus schalten</button>
                 </div>
             </div>
 
             <!-- 2. ANALYTICS -->
             <div id="analytics" class="tab-content">
                 <div class="card">
-                    <h2>User Analytik & Graphen</h2>
-                    <p style="font-size:12px; color:var(--text-muted); margin-bottom:15px;">Echtzeit-Auswertung der aktiven Systemprozesse und Client-Verbindungen.</p>
-                    <div class="grid-2">
-                        <div class="stats-box"><label>Durchschnittliche FPS (Streams)</label><div class="stats-num">28.4</div></div>
-                        <div class="stats-box"><label>Netzwerk-Auslastung</label><div class="stats-num">1.2 MB/s</div></div>
+                    <h2>Live User Telemetrie & Auslastung</h2>
+                    <p style="font-size: 12px; color: var(--text-muted);">Aktive Games: Fortnite (65%), CS2 (20%), Valorant (10%), Rust/Warzone (5%)</p>
+                </div>
+            </div>
+
+            <!-- 3. SERVER CORE / UPDATE -->
+            <div id="settings" class="tab-content">
+                <div class="card">
+                    <h2>Update-Zwang & Versionierung</h2>
+                    <label>Minimale erlaubte Loader-Version</label><input type="text" value="1.2.0">
+                    <label>Direkter Update-Download-Link</label><input type="text" value="https://github.com/Assmar00/loader/releases">
+                    <button onclick="alert('Update-Konfiguration gespeichert!')">Konfiguration Pushen</button>
+                </div>
+            </div>
+
+            <!-- 4. FEATURE SWITCHES -->
+            <div id="features" class="tab-content">
+                <div class="card">
+                    <h2>Remote Feature Kill-Switches</h2>
+                    <div class="switch-row"><span>Aimbot-Modul global erlauben</span><input type="checkbox" checked></div>
+                    <div class="switch-row"><span>Recoil-Control Modul erlauben</span><input type="checkbox" checked></div>
+                    <div class="switch-row"><span>Color-Prefire Modul erlauben</span><input type="checkbox" checked></div>
+                    <button onclick="alert('Modul-Status aktualisiert!')">Einstellungen Speichern</button>
+                </div>
+            </div>
+
+            <!-- GLOBAL COMMANDS -->
+            <div id="commands" class="tab-content">
+                <div class="card">
+                    <h2>Globaler Massen-Befehl an Clients</h2>
+                    <label>Befehl auswählen</label>
+                    <select>
+                        <option>Alle Clients zum Neustart zwingen</option>
+                        <option>Lokalen Cache leeren</option>
+                        <option>Alle Loader minimieren</option>
+                        <option>Notfall-Sperre aktivieren</option>
+                    </select>
+                    <button onclick="alert('Befehl an alle Clients gesendet!')">Befehl Abfeuern</button>
+                </div>
+            </div>
+
+            <!-- 5. ADVANCED GOD-MODE KEY MANAGER -->
+            <div id="licenses" class="tab-content">
+                <div class="grid-2">
+                    <div class="card">
+                        <h2>Neuen Key / Batch generieren</h2>
+                        <label>Ablaufdatum & Uhrzeit festlegen</label>
+                        <input type="datetime-local" id="custom-expiry-date">
+                        <label>Anzahl</label><input type="number" value="1">
+                        <label>Prefix / Notiz</label><input type="text" placeholder="Z.B. FREUND-PAUL">
+                        <button onclick="alert('Key erfolgreich generiert!')">Key Erstellen</button>
+                        
+                        <div style="margin-top: 15px; border-top: 1px solid var(--card-border); padding-top: 15px;">
+                            <label style="color: #ffaa00;">Globale Notfall-Steuerung</label>
+                            <button class="btn-warning" onclick="alert('ALLE Keys wurden pausiert!')" style="width: 100%; margin-top: 5px;">⏸️ ALLE KEYS GLOBAL PAUSIEREN</button>
+                        </div>
+                    </div>
+
+                    <div class="card" style="max-height: 480px; overflow-y: auto;">
+                        <h2>Key Management & Deep Control</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Key & Notiz</th>
+                                    <th>Status & Ablauf</th>
+                                    <th>Admin Einzel-Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <strong style="color:var(--accent-color);">ASR-9812-PAUL</strong><br>
+                                        <input type="text" value="Notiz: Für Paul" style="margin-bottom:0; padding:2px 6px; font-size:10px; margin-top:3px;" onchange="alert('Notiz aktualisiert!')">
+                                    </td>
+                                    <td>
+                                        <span style="color:#00ff66;">Aktiv</span><br>
+                                        <span style="font-size:9px; color:#777;">Läuft ab: 15.11.2026</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-secondary btn-sm" onclick="alert('HWID Bindung zurückgesetzt!')">HWID Reset</button>
+                                        <button class="btn-secondary btn-sm" onclick="prompt('Tage hinzufügen (+/-):', '7')">+ Tage</button>
+                                        <button class="btn-warning btn-sm" onclick="alert('Key pausiert!')">Pausieren</button>
+                                        <button class="btn-danger btn-sm" onclick="alert('Key gelöscht!')">Löschen</button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <strong style="color:var(--accent-color);">ASR-4421-TEST</strong><br>
+                                        <input type="text" value="Test-Account" style="margin-bottom:0; padding:2px 6px; font-size:10px; margin-top:3px;" onchange="alert('Notiz aktualisiert!')">
+                                    </td>
+                                    <td>
+                                        <span style="color:#ffaa00;">Pausiert</span><br>
+                                        <span style="font-size:9px; color:#777;">Läuft ab: Lifetime</span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-secondary btn-sm" onclick="alert('HWID Bindung zurückgesetzt!')">HWID Reset</button>
+                                        <button class="btn-secondary btn-sm" onclick="prompt('Tage hinzufügen (+/-):', '30')">+ Tage</button>
+                                        <button class="btn-secondary btn-sm" style="background:#005533; color:#fff;" onclick="alert('Key fortgesetzt!')">Fortsetzen</button>
+                                        <button class="btn-danger btn-sm" onclick="alert('Key gelöscht!')">Löschen</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
 
-            <!-- 3. SERVER SETTINGS -->
-            <div id="settings" class="tab-content">
+            <!-- 6. PRICING -->
+            <div id="pricing" class="tab-content">
                 <div class="card">
-                    <h2>Server Core & Force-Update</h2>
-                    <label>Force-Update Version an alle Clients pushen</label>
-                    <input type="text" placeholder="z.B. v2.4.1-patch">
-                    <button>Update Befehl senden</button>
+                    <h2>Abonnements & Ränge verwalten</h2>
+                    <label>Standard-Laufzeit für Neukäufe</label><select><option>30 Tage</option><option>90 Tage</option><option>Lifetime</option></select>
+                    <button onclick="alert('Preise gespeichert!')">Speichern</button>
                 </div>
             </div>
 
-            <!-- 4. FEATURES -->
-            <div id="features" class="tab-content">
-                <div class="card">
-                    <h2>Remote Feature Switches</h2>
-                    <label><input type="checkbox" checked style="width:auto; margin-right:8px;"> Screen-Streaming Engine aktivieren</label>
-                    <label><input type="checkbox" checked style="width:auto; margin-right:8px;"> HWID-Sperre erzwingen</label>
-                    <label><input type="checkbox" style="width:auto; margin-right:8px;"> Wartungsmodus für alle Clients</label>
-                </div>
-            </div>
-
-            <!-- 5. COMMANDS -->
-            <div id="commands" class="tab-content">
-                <div class="card">
-                    <h2>Globaler Massen-Befehl (Broadcast)</h2>
-                    <label>Konsolen-Befehl / Python Snippet für alle verbundenen Clients</label>
-                    <textarea rows="4" placeholder="print('Hello from Cloud Server')"></textarea>
-                    <button>An alle Clients senden</button>
-                </div>
-            </div>
-
-            <!-- 6. LICENSES -->
-            <div id="licenses" class="tab-content">
-                <div class="card">
-                    <h2>Master Key & God-Mode Manager</h2>
-                    <label>Neuen Lizenz-Schlüssel generieren</label>
-                    <input type="text" value="ASR-9812-GODMODE-GEN">
-                    <button>Schlüssel in Datenbank speichern</button>
-                </div>
-            </div>
-
-            <!-- 7. USERS -->
+            <!-- 7. USERS & DESKTOP NAMES -->
             <div id="users" class="tab-content">
                 <div class="card">
                     <h2>Aktive Live-Sessions (Desktop-Namen & Eigene Notizen)</h2>
-                    <table id="users-table">
+                    <table>
                         <thead>
                             <tr>
                                 <th>Windows Desktop-Name</th>
-                                <th>Deine Admin-Notiz</th>
+                                <th>Deine Admin-Notiz / Rinomina</th>
                                 <th>HWID Hash</th>
                                 <th>Aktives Game</th>
                                 <th>Aktion</th>
                             </tr>
                         </thead>
-                        <tbody></tbody>
+                        <tbody>
+                            <tr class="user-row">
+                                <td onclick="openUserModal('User_Alpha', '185.220.101.4', 'AMD Ryzen 7 5800X3D', 'NVIDIA RTX 4070', 'B550', '16GB', 'Win10', 'Fortnite', 'ASR-8812', '28 Tage')">DESKTOP-PC99</td>
+                                <td><input type="text" value="Kumpel Lukas" style="margin-bottom:0; padding:4px 8px; font-size:11px;" onchange="alert('Gespeichert!')"></td>
+                                <td>e3b0c44298fc1c14...</td>
+                                <td>Fortnite</td>
+                                <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;" onclick="openUserModal('User_Alpha', '185.220.101.4', 'AMD Ryzen 7 5800X3D', 'NVIDIA RTX 4070', 'B550', '16GB', 'Win10', 'Fortnite', 'ASR-8812', '28 Tage')">Inspect & Live</button></td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
@@ -421,62 +512,167 @@
             <!-- 8. BANS -->
             <div id="bans" class="tab-content">
                 <div class="card">
-                    <h2>Sperrliste & IP-Sperren</h2>
-                    <label>HWID oder IP blockieren</label>
-                    <input type="text" placeholder="HWID Hash eingeben...">
-                    <button style="background:#ff4455;">Client dauerhaft sperren</button>
+                    <h2>Hardware & IP Sperrliste</h2>
+                    <label>HWID oder IP-Adresse eingeben</label><input type="text" placeholder="z.B. 192.168.1.50 oder HWID-Hash">
+                    <button class="btn-danger" onclick="alert('Permanent gebannt!')">Permanent Sperren</button>
                 </div>
             </div>
 
             <!-- 9. CLOUD CONFIGS -->
             <div id="cloudconfigs" class="tab-content">
                 <div class="card">
-                    <h2>Cloud Model & Script Push</h2>
-                    <label>ONNX / Python Skript Datei hochladen</label>
-                    <input type="file">
-                    <button>An Cloud Clients verteilen</button>
+                    <h2>ONNX Model & Script Cloud Push</h2>
+                    <label>Model-Datei auswählen (.onnx / .bin)</label><input type="file">
+                    <button onclick="alert('Modell an alle Clients gepusht!')">An alle Clients verteilen</button>
                 </div>
             </div>
 
             <!-- 10. TICKETS -->
             <div id="tickets" class="tab-content">
-                <div class="card">
-                    <h2>Live Support Tickets</h2>
-                    <table>
-                        <thead><tr><th>Ticket ID</th><th>Client</th><th>Nachricht</th><th>Status</th></tr></thead>
-                        <tbody><tr><td>#1024</td><td>ASSMAR-PC</td><td>Verbindungsproblem bei 60fps</td><td><span style="color:var(--accent-color);">Offen</span></td></tr></tbody>
-                    </table>
+                <div class="grid-2">
+                    <div class="card">
+                        <h2>Eingegangene Loader-Reports</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Kategorie</th>
+                                    <th>Game</th>
+                                    <th>Status</th>
+                                    <th>Aktion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="user-row" onclick="loadTicket('T-881', 'User_Alpha', 'Bug Report', 'Fortnite', 'Color Prefire triggert manchmal leicht verzögert bei Waffenswap.')">
+                                    <td>User_Alpha</td>
+                                    <td><span class="ticket-badge badge-bug">BUG</span></td>
+                                    <td>Fortnite</td>
+                                    <td style="color:#ffaa00;">Offen</td>
+                                    <td><button class="btn-secondary" style="padding: 2px 6px; font-size: 9px;">Öffnen</button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="card" id="ticket-detail-box">
+                        <h2 id="t-id-title">TICKET INSPECTOR // T-881</h2>
+                        
+                        <div style="margin-bottom: 12px; font-size: 11px; font-family: monospace;">
+                            <div><strong>User:</strong> <span id="t-user">User_Alpha</span></div>
+                            <div><strong>Game:</strong> <span id="t-game" style="color:var(--accent-color);">Fortnite</span></div>
+                        </div>
+
+                        <label>Ticket Status ändern:</label>
+                        <select id="ticket-status-select" style="margin-bottom: 10px;">
+                            <option value="open" style="color:#ffaa00;">🟡 Offen (Neu)</option>
+                            <option value="progress" style="color:#00ffaa;">🔵 In Bearbeitung</option>
+                            <option value="resolved" style="color:#00ff66;">🟢 Gelöst</option>
+                            <option value="closed" style="color:#ff4455;">🔴 Geschlossen</option>
+                        </select>
+
+                        <label>Nachricht vom User:</label>
+                        <textarea id="t-msg" rows="2" readonly style="background:#05040a;">Color Prefire triggert manchmal leicht verzögert bei Waffenswap.</textarea>
+
+                        <label>Live-Chat zum Loader des Users:</label>
+                        <div class="chat-box" id="chat-messages">
+                            <div class="chat-msg msg-user"><strong>User_Alpha:</strong> Hey, könnt ihr euch das anschauen?</div>
+                            <div class="chat-msg msg-admin"><strong>Admin Assmar00:</strong> Hi! Ich habe mir dein Ticket angeschaut.</div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px;">
+                            <input type="text" id="chat-input" placeholder="Antwort direkt in den Loader senden..." style="margin-bottom: 0;">
+                            <button onclick="sendChatMessage()">Senden</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- 11. LOGS -->
             <div id="logs" class="tab-content">
                 <div class="card">
-                    <h2>Protokolle & Audit Logs</h2>
-                    <textarea rows="10" readonly style="font-family:monospace; font-size:11px; background:#020204; color:#00ff66;">[INFO] Server gestartet auf Render Cloud...
-[AUTH] Master-Zugriff erfolgreich autorisiert.
-[STREAM] Video-Feed Stream initialisiert.</textarea>
+                    <h2>Audit Protokolle & System Logs</h2>
+                    <p style="font-family:monospace; font-size:11px; color:var(--accent-color);">[17:12:00] Admin Assmar00 logged in successfully.<br>[17:11:45] Key verified: ASR-9812.<br>[17:10:02] Core status OK.</p>
                 </div>
             </div>
 
             <!-- 12. DATABASE -->
             <div id="database" class="tab-content">
                 <div class="card">
-                    <h2>SQL Backup & Konsole</h2>
-                    <button class="btn-secondary">SQLite Datenbank herunterladen (.db)</button>
+                    <h2>Database Backups & Wartung</h2>
+                    <button class="btn-secondary" onclick="alert('SQL Backup heruntergeladen!')">SQL Backup herunterladen (.sql)</button>
                 </div>
             </div>
         </main>
     </div>
 
     <script>
-        const API_BASE = ""; 
-        let activeUserDesktop = "";
-
         const translations = {
-            de: { welcome: "WILLKOMMEN ZURÜCK, ASSMAR00", restricted: "Eingeschränkter Admin-Zugriff", loginBtn: "Zugriff Gewähren" },
-            en: { welcome: "WELCOME BACK, ASSMAR00", restricted: "Restricted Admin Access", loginBtn: "Access Granted" },
-            it: { welcome: "BENVENUTO TORNATO, ASSMAR00", restricted: "Accesso Amministratore Riservato", loginBtn: "Accesso Consentito" }
+            de: {
+                welcome: "WILLKOMMEN ZURÜCK, ASSMAR00",
+                restricted: "Eingeschränkter Admin-Zugriff",
+                loginBtn: "Zugriff Gewähren",
+                catCore: "1. Kern-Steuerung",
+                catLicense: "2. Lizenz-Engine",
+                catUsers: "3. Benutzer & Hardware",
+                catCloud: "4. Automation & Support",
+                catLogs: "5. System-Admin",
+                navTelemetry: "📊 Telemetrie & Übersicht",
+                navAnalytics: "📈 User Analytik & Graphen",
+                navServer: "🛠️ Server-Kern & Force-Update",
+                navFeatures: "⚙️ Remote Feature Switches",
+                navCommands: "⚡ Globaler Massen-Befehl",
+                navKeys: "🔑 Master Key & God-Mode Manager",
+                navHwid: "👥 Desktop-Namen & Sessions",
+                navBans: "⛔ Sperrliste & IP-Sperren",
+                navCloud: "☁️ Cloud Model & Script Push",
+                navTickets: "🎫 Live Support Tickets",
+                navLogs: "🛡️ Protokolle & Audit Logs",
+                navDb: "💾 SQL Backup & Konsole"
+            },
+            en: {
+                welcome: "WELCOME BACK, ASSMAR00",
+                restricted: "Restricted Admin Access",
+                loginBtn: "Access Granted",
+                catCore: "1. Core Control",
+                catLicense: "2. License Engine",
+                catUsers: "3. Users & Hardware",
+                catCloud: "4. Automation & Support",
+                catLogs: "5. System Admin",
+                navTelemetry: "📊 Telemetry & Overview",
+                navAnalytics: "📈 User Analytics & Graphs",
+                navServer: "🛠️ Server Core & Force-Update",
+                navFeatures: "⚙️ Remote Feature Switches",
+                navCommands: "⚡ Global Mass Command",
+                navKeys: "🔑 Master Key & God-Mode Manager",
+                navHwid: "👥 Desktop Names & Sessions",
+                navBans: "⛔ Banlist & IP Restrictions",
+                navCloud: "☁️ Cloud Model & Script Push",
+                navTickets: "🎫 Live Support Tickets",
+                navLogs: "🛡️ Audit Trail & Logs",
+                navDb: "💾 SQL Backup & Console"
+            },
+            it: {
+                welcome: "BENVENUTO TORNATO, ASSMAR00",
+                restricted: "Accesso Amministratore Riservato",
+                loginBtn: "Accesso Consentito",
+                catCore: "1. Controllo Principale",
+                catLicense: "2. Motore Licenze",
+                catUsers: "3. Utenti & Hardware",
+                catCloud: "4. Automazione & Supporto",
+                catLogs: "5. Admin di Sistema",
+                navTelemetry: "📊 Telemetrie & Panoramica",
+                navAnalytics: "📈 Analitica Utenti & Grafici",
+                navServer: "🛠️ Core Server & Aggiornamento",
+                navFeatures: "⚙️ Interruttori Funzionalità",
+                navCommands: "⚡ Comando di Massa Globale",
+                navKeys: "🔑 Gestione Chiavi God-Mode",
+                navHwid: "👥 Nomi Desktop & Sessioni",
+                navBans: "⛔ Lista Ban & Restrizioni IP",
+                navCloud: "☁️ Invio Modello Cloud & Script",
+                navTickets: "🎫 Ticket di Supporto Live",
+                navLogs: "🛡️ Registro & Log di controllo",
+                navDb: "💾 Backup SQL & Console"
+            }
         };
 
         function changeLanguage(lang) {
@@ -484,6 +680,23 @@
             document.getElementById('txt-welcome').innerText = t.welcome;
             document.getElementById('txt-restricted').innerText = t.restricted;
             document.getElementById('btn-login').innerText = t.loginBtn;
+            document.getElementById('cat-core').innerText = t.catCore;
+            document.getElementById('cat-license').innerText = t.catLicense;
+            document.getElementById('cat-users').innerText = t.catUsers;
+            document.getElementById('cat-cloud').innerText = t.catCloud;
+            document.getElementById('cat-logs').innerText = t.catLogs;
+            document.getElementById('nav-telemetry').innerText = t.navTelemetry;
+            document.getElementById('nav-analytics').innerText = t.navAnalytics;
+            document.getElementById('nav-server').innerText = t.navServer;
+            document.getElementById('nav-features').innerText = t.navFeatures;
+            document.getElementById('nav-commands').innerText = t.navCommands;
+            document.getElementById('nav-keys').innerText = t.navKeys;
+            document.getElementById('nav-hwid').innerText = t.navHwid;
+            document.getElementById('nav-bans').innerText = t.navBans;
+            document.getElementById('nav-cloud').innerText = t.navCloud;
+            document.getElementById('nav-tickets').innerText = t.navTickets;
+            document.getElementById('nav-logs').innerText = t.navLogs;
+            document.getElementById('nav-db').innerText = t.navDb;
         }
 
         function changeTheme(themeName) {
@@ -500,8 +713,6 @@
             if (pass === "Assmar00.550662.-?") {
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
-                fetchLiveData();
-                setInterval(fetchLiveData, 5000);
             } else {
                 err.innerText = "ACCESS DENIED: Falsches Passwort!";
                 document.getElementById('pass-input').value = "";
@@ -528,40 +739,21 @@
             btn.classList.add('active');
         }
 
-        function openUserModal(name, ip, cpu, game) {
-            activeUserDesktop = name;
-            document.getElementById('m-user-title').innerText = "SYSTEM INSPECTOR // " + name;
+        function openUserModal(name, ip, cpu, gpu, mobo, ram, os, game, key, expiry) {
+            document.getElementById('m-user-title').innerText = "SYSTEM INSPECTOR & LIVE VIEW // " + name;
             document.getElementById('m-hwid').innerText = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
-            document.getElementById('m-ip').innerText = ip + " (Online Cloud Client)";
+            document.getElementById('m-ip').innerText = ip + " (Germany)";
             document.getElementById('m-cpu').innerText = cpu;
-            document.getElementById('m-gpu').innerText = "NVIDIA GeForce RTX / AMD Radeon";
-            document.getElementById('m-motherboard').innerText = "Default Motherboard SN";
-            document.getElementById('m-ram').innerText = "16384MB RAM";
-            document.getElementById('m-os').innerText = "Windows 10 Pro";
+            document.getElementById('m-gpu').innerText = gpu;
+            document.getElementById('m-motherboard').innerText = mobo;
+            document.getElementById('m-ram').innerText = ram;
+            document.getElementById('m-os').innerText = os;
             document.getElementById('m-game').innerText = game;
-            document.getElementById('m-key').innerText = "ASR-9812-PAUL";
-            document.getElementById('m-expiry').innerText = "Aktiv (Unbegrenzt)";
+            document.getElementById('m-key').innerText = key;
+            document.getElementById('m-expiry').innerText = expiry;
 
-            updateStreamSettings();
+            document.getElementById('live-video-feed').src = "https://ai-bot-1-zu9n.onrender.com/video_feed?user=" + name;
             document.getElementById('user-modal').style.display = 'flex';
-        }
-
-        function updateStreamSettings() {
-            const fps = document.getElementById('stream-fps').value;
-            const res = document.getElementById('stream-res').value;
-            const imgElement = document.getElementById('live-video-feed');
-            imgElement.src = `${API_BASE}/video_feed?user=${activeUserDesktop}&fps=${fps}&res=${res}`;
-        }
-
-        function toggleFullscreen() {
-            const streamBox = document.getElementById('stream-wrapper');
-            if (!document.fullscreenElement) {
-                streamBox.requestFullscreen().catch(err => {
-                    alert("Fehler beim Vollbild: " + err.message);
-                });
-            } else {
-                document.exitFullscreen();
-            }
         }
 
         function closeUserModal() {
@@ -569,34 +761,26 @@
             document.getElementById('live-video-feed').src = "";
         }
 
-        async function fetchLiveData() {
-            try {
-                let resStats = await fetch(API_BASE + "/api/stats");
-                let stats = await resStats.json();
-                document.getElementById('stat-clients').innerText = stats.active_clients;
-                document.getElementById('stat-tickets').innerText = stats.open_tickets;
-                document.getElementById('stat-keys').innerText = stats.total_keys;
+        function loadTicket(id, user, cat, game, msg) {
+            document.getElementById('t-id-title').innerText = "TICKET INSPECTOR // " + id;
+            document.getElementById('t-user').innerText = user;
+            document.getElementById('t-game').innerText = game;
+            document.getElementById('t-msg').value = msg;
+        }
 
-                let resUsers = await fetch(API_BASE + "/api/users");
-                let users = await resUsers.json();
-                let userTable = document.querySelector('#users-table tbody');
-                userTable.innerHTML = "";
-                users.forEach(u => {
-                    userTable.innerHTML += `
-                        <tr class="user-row" onclick="openUserModal('${u.desktop}', '${u.ip}', '${u.cpu}', '${u.game}')">
-                            <td>${u.desktop}</td>
-                            <td><input type="text" value="${u.custom_name}" style="margin-bottom:0; padding:4px 8px; font-size:11px;" onclick="event.stopPropagation()"></td>
-                            <td>${u.hwid.substring(0, 12)}...</td>
-                            <td>${u.game}</td>
-                            <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;">Inspect & Live</button></td>
-                        </tr>
-                    `;
-                });
-            } else {
-                // Falls API Fehler wirft
-            }
-        } catch (e) {
-            console.error("Live-Daten Verbindung zur API fehlgeschlagen:", e);
+        function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const msgText = input.value.trim();
+            if(!msgText) return;
+
+            const chatBox = document.getElementById('chat-messages');
+            const newMsg = document.createElement('div');
+            newMsg.className = "chat-msg msg-admin";
+            newMsg.innerHTML = "<strong>Admin Assmar00:</strong> " + msgText;
+            chatBox.appendChild(newMsg);
+
+            input.value = "";
+            chatBox.scrollTop = chatBox.scrollHeight;
         }
     </script>
 </body>
