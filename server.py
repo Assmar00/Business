@@ -1,4 +1,5 @@
 import os
+import sqlite3
 import cv2
 import numpy as np
 from fastapi import FastAPI, HTTPException
@@ -6,7 +7,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-app = FastAPI(title="Assmar00 God-Mode Live Backend", version="2.0")
+app = FastAPI(title="Assmar00 God-Mode Real Backend", version="3.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -16,16 +17,53 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# SQLite Datenbank initialisieren
+DB_FILE = "database.db"
+
+def init_db():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS clients (
+            desktop TEXT PRIMARY KEY,
+            custom_name TEXT,
+            hwid TEXT,
+            ip TEXT,
+            cpu TEXT,
+            game TEXT,
+            last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS keys (
+            key_code TEXT PRIMARY KEY,
+            note TEXT,
+            expiry TEXT,
+            status TEXT DEFAULT 'Aktiv'
+        )
+    """)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tickets (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT,
+            category TEXT,
+            game TEXT,
+            message TEXT,
+            status TEXT DEFAULT 'Offen'
+        )
+    """)
+    conn.commit()
+    conn.close()
+
+init_db()
+
 class ClientData(BaseModel):
     desktop: str
-    cpu: str
-    game: str
-    hwid: str
-    ip: str = "127.0.0.1"
     custom_name: str = "Client"
-
-# ECHTE Datenbank für verbundene Clients (Startet leer, füllt sich nur durch echte Clients)
-active_clients_db = {}
+    hwid: str = ""
+    ip: str = "127.0.0.1"
+    cpu: str = "Unknown"
+    game: str = "Idle"
 
 @app.get("/", response_class=HTMLResponse)
 def serve_admin():
@@ -33,42 +71,75 @@ def serve_admin():
         with open("admin.html", "r", encoding="utf-8") as f:
             return f.read()
     except FileNotFoundError:
-        return "<h3>admin.html nicht gefunden auf dem Server!</h3>"
+        return "<h3>admin.html wurde auf dem Server nicht gefunden!</h3>"
 
 @app.get("/api/stats")
 def get_stats():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) FROM clients")
+    active_clients = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM tickets WHERE status='Offen'")
+    open_tickets = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(*) FROM keys")
+    total_keys = cursor.fetchone()[0]
+    conn.close()
+    
     return {
-        "active_clients": len(active_clients_db),
-        "open_tickets": 0,
-        "total_keys": 1
+        "active_clients": active_clients,
+        "open_tickets": open_tickets,
+        "total_keys": total_keys
     }
 
 @app.get("/api/users")
 def get_users():
-    # Gibt nur die echten Clients zurück, die sich verbunden haben
-    return list(active_clients_db.values())
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM clients")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
 
 @app.post("/api/client/heartbeat")
 def client_heartbeat(data: ClientData):
-    # Speichert oder aktualisiert den echten Client
-    active_clients_db[data.desktop] = data.dict()
-    return {"status": "connected"}
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO clients (desktop, custom_name, hwid, ip, cpu, game)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(desktop) DO UPDATE SET
+        custom_name=excluded.custom_name,
+        hwid=excluded.hwid,
+        ip=excluded.ip,
+        cpu=excluded.cpu,
+        game=excluded.game,
+        last_seen=CURRENT_TIMESTAMP
+    """, (data.desktop, data.custom_name, data.hwid, data.ip, data.cpu, data.game))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
 
 @app.get("/video_feed")
-def video_feed(user: str, fps: int = 15, res: str = "720p"):
-    def generate_real_stream():
-        # Hier greift der Server den echten Stream des Clients ab (oder zeigt Warten-Bild, wenn Client offline ist)
+def video_feed(user: str):
+    def generate_stream():
         while True:
-            if user in active_clients_db:
-                # Platz für echten OpenCV / Screen Frame des Clients
-                img = np.zeros((480, 640, 3), dtype=np.uint8)
-                cv2.putText(img, f"LIVE: {user}", (30, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+            conn = sqlite3.connect(DB_FILE)
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM clients WHERE desktop=?", (user,))
+            client = cursor.fetchone()
+            conn.close()
+
+            img = np.zeros((480, 640, 3), dtype=np.uint8)
+            if client:
+                cv2.putText(img, f"LIVE STREAM: {user}", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
             else:
-                img = np.zeros((480, 640, 3), dtype=np.uint8)
-                cv2.putText(img, "CLIENT OFFLINE", (180, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 255), 2)
-            
+                cv2.putText(img, f"CLIENT OFFLINE", (40, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+
             _, encoded = cv2.imencode('.jpg', img)
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
 
-    return StreamingResponse(generate_real_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
+    return StreamingResponse(generate_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
