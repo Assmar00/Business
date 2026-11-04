@@ -247,7 +247,7 @@
 
             <div id="modal-tab-stream" class="modal-tab-pane">
                 <div class="screen-stream-box">
-                    <div class="stream-overlay-info">STREAM: ON-DEMAND (0.0% Last bei Inaktivität)</div>
+                    <div class="stream-overlay-info">STREAM: ON-DEMAND</div>
                     <img id="live-video-feed" src="" alt="Warte auf Client-Stream..." style="width: 100%; height: 100%; object-fit: contain;">
                 </div>
             </div>
@@ -274,9 +274,10 @@
             <div class="nav-category">1. Kern-Steuerung</div>
             <button class="nav-btn active" onclick="switchTab('dashboard', this)">📊 Telemetrie & Übersicht</button>
             <button class="nav-btn" onclick="switchTab('licenses', this)">🔑 Master Key & God-Mode Manager</button>
-            <button class="nav-btn" onclick="switchTab('users', this)">👥 Desktop-Namen & Sessions</button>
+            <button class="nav-btn" onclick="switchTab('users', this)">👥 Live-Sessions (Online)</button>
+            <button class="nav-btn" onclick="switchTab('history', this)">📜 Nutzer-Katalog (Alle)</button>
             <button class="nav-btn" onclick="switchTab('bans', this)">⛔ Sperrliste & IP-Sperren</button>
-            <button class="nav-btn" onclick="switchTab('servercore', this)">🛠️ Server-Kern & Force-Update</button>
+            <button class="nav-btn" onclick="switchTab('servercore', this)">🛠️ Server-Kern & Kill-Switch</button>
         </sidebar>
 
         <main>
@@ -296,34 +297,40 @@
 
             <div id="dashboard" class="tab-content active">
                 <div class="grid-4" style="margin-bottom: 20px;">
-                    <div class="stats-box"><label>Aktive Clients</label><div class="stats-num" id="stat-clients">0</div></div>
-                    <div class="stats-box"><label>Hintergrund-Last</label><div class="stats-num" style="color:#00ff66;">0.0%</div></div>
-                    <div class="stats-box"><label>Keys Gesamt</label><div class="stats-num">1,280</div></div>
-                    <div class="stats-box"><label>Status</label><div class="stats-num" style="color:var(--accent-color);">ONLINE</div></div>
+                    <div class="stats-box"><label>Aktive Online Clients</label><div class="stats-num" id="stat-clients">0</div></div>
+                    <div class="stats-box"><label>Keys Gesamt (DB)</label><div class="stats-num" id="stat-keys">0</div></div>
+                    <div class="stats-box"><label>Nutzer Historie Total</label><div class="stats-num" id="stat-history">0</div></div>
+                    <div class="stats-box"><label>System Status</label><div class="stats-num" style="color:var(--accent-color);" id="stat-sys-status">ONLINE</div></div>
                 </div>
             </div>
 
             <div id="servercore" class="tab-content">
-                <div class="card" style="max-width: 600px;">
-                    <h2>Force-Update & Server-Kern Konfiguration</h2>
-                    <label>Minimale erlaubte Loader-Version (Zwingt ältere Versionen zum Update)</label>
+                <div class="card" style="max-width: 600px; border-color: #ff0055;">
+                    <h2 style="color: #ff0055;">🚨 NOTFALL-STEUERUNG // EMERGENCY KILL-SWITCH</h2>
+                    <label>Wartungsmodus (Blockiert alle Logins/Heartbeats sofort)</label>
+                    <select id="setting-maintenance">
+                        <option value="off">🟢 Aus (Normalbetrieb)</option>
+                        <option value="on">🔴 AN (Wartungsmodus aktiv)</option>
+                    </select>
+
+                    <label style="margin-top: 15px;">Minimale erlaubte Loader-Version</label>
                     <input type="text" id="setting-min-version" placeholder="z.B. 1.0.1">
                     
-                    <label>Direkter Update-Download-Link (Ziel für den Zwang-Download)</label>
+                    <label>Direkter Update-Download-Link</label>
                     <input type="text" id="setting-update-url" placeholder="https://mein-download-link.de/loader.exe">
                     
-                    <button onclick="saveSettings()">Konfiguration Pushen</button>
+                    <button onclick="saveSettings()" style="background:#ff0055;">Änderungen Anwenden & Pushen</button>
                 </div>
             </div>
 
             <div id="licenses" class="tab-content">
                 <div class="grid-2">
                     <div class="card">
-                        <h2>Neuen Key generieren</h2>
+                        <h2>Key Erstellen</h2>
                         <label>Key-Code eingeben</label><input type="text" id="new-key-code" placeholder="Z.B. ASR-1234-TEST">
                         <label>Notiz</label><input type="text" id="new-key-note" placeholder="Für wen?">
                         <label>Ablaufdatum</label><input type="date" id="new-key-expiry">
-                        <button onclick="createKey()">Key In Datenbank Erstellen</button>
+                        <button onclick="createKey()">Key Erstellen</button>
                     </div>
 
                     <div class="card" style="max-height: 480px; overflow-y: auto;">
@@ -344,11 +351,11 @@
 
             <div id="users" class="tab-content">
                 <div class="card">
-                    <h2>Aktive Live-Sessions (Klick für msinfo32 / Stream / Nachricht)</h2>
+                    <h2>Aktive Live-Sessions (Nur User mit offenem Loader)</h2>
                     <table>
                         <thead>
                             <tr>
-                                <th>Windows Desktop-Name</th>
+                                <th>Desktop-Name</th>
                                 <th>Disk HWID</th>
                                 <th>IP-Adresse</th>
                                 <th>Aktives Game</th>
@@ -356,6 +363,25 @@
                             </tr>
                         </thead>
                         <tbody id="users-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="history" class="tab-content">
+                <div class="card">
+                    <h2>👥 Nutzer-Katalog (Alle User die jemals den Loader genutzt haben)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Desktop-Name</th>
+                                <th>Disk HWID</th>
+                                <th>IP</th>
+                                <th>CPU / GPU</th>
+                                <th>Lizenz Key</th>
+                                <th>Letzter Kontakt</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body"></tbody>
                     </table>
                 </div>
             </div>
@@ -398,6 +424,7 @@
                 loadUsers();
                 loadKeys();
                 loadBans();
+                loadHistory();
                 loadSettings();
             } else {
                 err.innerText = "ACCESS DENIED: Falsches Passwort!";
@@ -419,6 +446,7 @@
             if(tabId === 'users') loadUsers();
             if(tabId === 'licenses') loadKeys();
             if(tabId === 'bans') loadBans();
+            if(tabId === 'history') loadHistory();
             if(tabId === 'servercore') loadSettings();
         }
 
@@ -442,19 +470,32 @@
             .then(data => {
                 if(data.min_version) document.getElementById('setting-min-version').value = data.min_version;
                 if(data.update_url) document.getElementById('setting-update-url').value = data.update_url;
+                if(data.maintenance_mode) document.getElementById('setting-maintenance').value = data.maintenance_mode;
+                
+                if(data.maintenance_mode === 'on') {
+                    document.getElementById('stat-sys-status').innerText = "WARTUNGSMODUS";
+                    document.getElementById('stat-sys-status').style.color = "#ff0055";
+                } else {
+                    document.getElementById('stat-sys-status').innerText = "ONLINE";
+                    document.getElementById('stat-sys-status').style.color = "var(--accent-color)";
+                }
             }).catch(()=>{});
         }
 
         function saveSettings() {
             const min_version = document.getElementById('setting-min-version').value.trim();
             const update_url = document.getElementById('setting-update-url').value.trim();
+            const maintenance_mode = document.getElementById('setting-maintenance').value;
 
             fetch(`${RENDER_URL}/api/settings/update`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ min_version: min_version, update_url: update_url })
+                body: JSON.stringify({ min_version: min_version, update_url: update_url, maintenance_mode: maintenance_mode })
             })
-            .then(() => alert("Force-Update Konfiguration erfolgreich gepusht!"));
+            .then(() => {
+                alert("Einstellungen & Kill-Switch aktualisiert!");
+                loadSettings();
+            });
         }
 
         function loadUsers() {
@@ -473,6 +514,29 @@
                             <td style="color:#00f3ff;">${u.ip}</td>
                             <td style="color:var(--accent-color);">${u.game}</td>
                             <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;">Inspect & Live</button></td>
+                        </tr>
+                    `;
+                });
+            }).catch(err => console.error(err));
+        }
+
+        function loadHistory() {
+            fetch(`${RENDER_URL}/api/history`)
+            .then(res => res.json())
+            .then(history => {
+                const tbody = document.getElementById('history-table-body');
+                tbody.innerHTML = "";
+                document.getElementById('stat-history').innerText = history.length;
+                
+                history.forEach(h => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong>${h.desktop}</strong></td>
+                            <td>${h.hwid}</td>
+                            <td style="color:#00f3ff;">${h.ip}</td>
+                            <td>${h.cpu} / ${h.gpu}</td>
+                            <td style="color:#00ff66;">${h.license_key || 'Keiner'}</td>
+                            <td>${h.last_seen}</td>
                         </tr>
                     `;
                 });
@@ -591,6 +655,8 @@
             .then(keys => {
                 const tbody = document.getElementById('keys-table-body');
                 tbody.innerHTML = "";
+                document.getElementById('stat-keys').innerText = keys.length;
+
                 keys.forEach(k => {
                     const statusColor = k.status === 'Unbenutzt' ? '#ffaa00' : '#00ff66';
                     const boundInfo = k.bound_hwid ? `<br><span style="font-size:9px; color:#00f3ff;">Disk: ${k.bound_hwid}</span>` : `<br><span style="font-size:9px; color:#777;">Noch ungebunden</span>`;
@@ -662,7 +728,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ key_code: code })
             }).then(() => {
-                alert("Key-Disk-Bindung zurückgesetzt (Status: Unbenutzt)!");
+                alert("Key-Disk-Bindung zurückgesetzt!");
                 loadKeys();
             });
         }
