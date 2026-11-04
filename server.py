@@ -3,13 +3,13 @@ import sqlite3
 import cv2
 import numpy as np
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
+from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 On-Demand Control", version="33.0")
+app = FastAPI(title="Assmar00 Control Panel", version="43.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -46,6 +46,13 @@ def init_db():
         )
     """)
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS banned_hwids (
+            hwid TEXT PRIMARY KEY,
+            ip TEXT DEFAULT '',
+            desktop TEXT DEFAULT ''
+        )
+    """)
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS global_settings (
             key TEXT PRIMARY KEY,
             value TEXT
@@ -56,13 +63,14 @@ def init_db():
             key_code TEXT PRIMARY KEY,
             note TEXT,
             expiry TEXT,
-            status TEXT DEFAULT 'Aktiv'
+            status TEXT DEFAULT 'Unbenutzt',
+            bound_hwid TEXT DEFAULT ''
         )
     """)
     cursor.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES ('latest_version', '1.0.1')", ())
     cursor.execute("""
-        INSERT OR IGNORE INTO keys (key_code, note, expiry, status)
-        VALUES ('ASR-9812-PAUL', 'Master Standard Key', '2026-12-31', 'Aktiv')
+        INSERT OR IGNORE INTO keys (key_code, note, expiry, status, bound_hwid)
+        VALUES ('ASR-9812-PAUL', 'Master Standard Key', '2026-12-31', 'Unbenutzt', '')
     """)
     conn.commit()
     conn.close()
@@ -115,26 +123,65 @@ def get_users():
     conn.close()
     return [dict(row) for row in rows]
 
-# Admin: User kicken / Session beenden
-@app.post("/api/admin/kick_user")
-def kick_user(data: dict):
+@app.get("/api/bans")
+def get_bans():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM banned_hwids")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+@app.post("/api/admin/ban_user")
+def ban_user(data: dict):
     desktop = data.get("desktop")
+    hwid = data.get("hwid")
+    ip = data.get("ip", "")
+    target_val = data.get("target")
+
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM clients WHERE desktop = ?", (desktop,))
+
+    if desktop:
+        # Holt exakt die Disk-HWID und IP des Clients aus der Tabelle und bannt beides
+        cursor.execute("SELECT hwid, ip FROM clients WHERE desktop = ?", (desktop,))
+        row = cursor.fetchone()
+        if row:
+            db_hwid, db_ip = row
+            target_ban_hwid = db_hwid if db_hwid else desktop
+            cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (target_ban_hwid, db_ip, desktop))
+        else:
+            cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (desktop, ip, desktop))
+        cursor.execute("DELETE FROM clients WHERE desktop = ?", (desktop,))
+    elif hwid:
+        cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (hwid, ip, ""))
+    elif target_val:
+        cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (target_val, target_val, target_val))
+
     conn.commit()
     conn.close()
+
     if desktop in viewers_watching: viewers_watching.remove(desktop)
     if desktop in active_streams: del active_streams[desktop]
-    return {"status": "success"}
 
-# Admin: Remote Nachricht senden
+    return {"status": "banned"}
+
+@app.post("/api/admin/unban_user")
+def unban_user(data: dict):
+    hwid = data.get("hwid")
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM banned_hwids WHERE hwid = ? OR ip = ? OR desktop = ?", (hwid, hwid, hwid))
+    conn.commit()
+    conn.close()
+    return {"status": "unbanned"}
+
 @app.post("/api/admin/send_message")
 def send_client_message(data: MessageData):
     pending_messages[data.desktop] = data.message
     return {"status": "success"}
 
-# Key Management Endpunkte
 @app.get("/api/keys")
 def get_keys():
     conn = sqlite3.connect(DB_FILE)
@@ -149,7 +196,7 @@ def get_keys():
 def add_key(data: KeyData):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("INSERT OR REPLACE INTO keys (key_code, note, expiry, status) VALUES (?, ?, ?, 'Aktiv')", 
+    cursor.execute("INSERT OR REPLACE INTO keys (key_code, note, expiry, status, bound_hwid) VALUES (?, ?, ?, 'Unbenutzt', '')", 
                    (data.key_code, data.note, data.expiry))
     conn.commit()
     conn.close()
@@ -185,11 +232,28 @@ def extend_key(data: dict):
     conn.close()
     return {"status": "success"}
 
-# Client Heartbeat & Stream
+@app.post("/api/keys/reset_hwid")
+def reset_key_hwid(data: dict):
+    key_code = data.get("key_code")
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE keys SET bound_hwid = '', status = 'Unbenutzt' WHERE key_code = ?", (key_code,))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
+
 @app.post("/api/client/heartbeat")
 def client_heartbeat(data: ClientData):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
+    
+    cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR ip = ? OR desktop = ?", (data.hwid, data.ip, data.desktop))
+    if cursor.fetchone():
+        cursor.execute("DELETE FROM clients WHERE desktop = ?", (data.desktop,))
+        conn.commit()
+        conn.close()
+        return {"status": "banned"}
+
     cursor.execute("""
         INSERT INTO clients (desktop, custom_name, hwid, ip, cpu, gpu, motherboard, ram, os_build, game, license_key, expiry, fps)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -206,6 +270,42 @@ def client_heartbeat(data: ClientData):
     alert_msg = pending_messages.pop(data.desktop, None)
     is_active = data.desktop in viewers_watching
     return {"status": "success", "stream_active": is_active, "alert_message": alert_msg}
+
+@app.post("/verify")
+def verify_license_endpoint(data: dict):
+    hwid = data.get("hwid", "")
+    ip = data.get("ip", "")
+    key = data.get("key", "")
+    desktop = data.get("desktop", "")
+
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    
+    # Strenger Bann-Check
+    cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR (ip = ? AND ip != '') OR desktop = ?", (hwid, ip, desktop))
+    if cursor.fetchone():
+        conn.close()
+        return {"success": False, "message": "DU BIST PERMANENT GEBANNT!"}
+
+    cursor.execute("SELECT * FROM keys WHERE key_code = ? AND status != 'Pausiert'", (key,))
+    row = cursor.fetchone()
+    
+    if not row:
+        conn.close()
+        return {"success": False, "message": "Ungültiger Key oder Pausiert!"}
+    
+    bound_hwid = row[4]
+    if bound_hwid and bound_hwid != hwid:
+        conn.close()
+        return {"success": False, "message": "FEHLER: Key ist bereits an eine andere Disk gebunden!"}
+    
+    # Setzt Status beim Einlösen fest auf 'Aktiviert' und speichert die Disk-HWID
+    cursor.execute("UPDATE keys SET bound_hwid = ?, status = 'Aktiviert' WHERE key_code = ?", (hwid, key))
+    conn.commit()
+
+    expiry_date = row[2]
+    conn.close()
+    return {"success": True, "message": "Key validiert", "expiry": expiry_date}
 
 @app.get("/api/stop_stream")
 def stop_stream(user: str):
@@ -242,17 +342,6 @@ def video_feed(user: str):
             if user in viewers_watching: viewers_watching.remove(user)
             if user in active_streams: del active_streams[user]
     return StreamingResponse(generate_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
-
-@app.post("/verify")
-def verify_license_endpoint(data: dict):
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM keys WHERE key_code = ? AND status = 'Aktiv'", (data.get("key", ""),))
-    row = cursor.fetchone()
-    conn.close()
-    if row:
-        return {"success": True, "message": "Key validiert", "expiry": row[2]}
-    return {"success": False, "message": "Ungültiger Key"}
 
 if __name__ == "__main__":
     import uvicorn
