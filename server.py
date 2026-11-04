@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Control Panel", version="48.0")
+app = FastAPI(title="Assmar00 Control Panel", version="49.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,7 +27,6 @@ pending_messages = {}
 def init_db():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    # Aktive Live-Sessions
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS clients (
             desktop TEXT PRIMARY KEY,
@@ -46,7 +45,6 @@ def init_db():
             last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
-    # Historie aller User, die jemals online waren
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS user_history (
             hwid TEXT PRIMARY KEY,
@@ -134,6 +132,10 @@ def get_users():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
+    # Entfernt inaktive Clients nach 6 Sekunden automatisch (wenn Loader geschlossen wird)
+    cursor.execute("DELETE FROM clients WHERE (julianday('now') - julianday(last_seen)) * 86400 > 6")
+    conn.commit()
+
     cursor.execute("SELECT * FROM clients")
     rows = cursor.fetchall()
     conn.close()
@@ -291,7 +293,6 @@ def client_heartbeat(data: ClientData):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
-    # Wartungsmodus prüfen
     cursor.execute("SELECT value FROM global_settings WHERE key = 'maintenance_mode'")
     m_row = cursor.fetchone()
     if m_row and m_row[0] == "on":
@@ -317,7 +318,6 @@ def client_heartbeat(data: ClientData):
         conn.close()
         return {"status": "banned"}
 
-    # In aktive Clients eintragen
     cursor.execute("""
         INSERT INTO clients (desktop, custom_name, hwid, ip, cpu, gpu, motherboard, ram, os_build, game, license_key, expiry, fps)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -329,7 +329,6 @@ def client_heartbeat(data: ClientData):
         last_seen=CURRENT_TIMESTAMP
     """, (data.desktop, data.custom_name, data.hwid, data.ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.game, data.license_key, data.expiry, data.fps))
 
-    # In Historie eintragen
     cursor.execute("""
         INSERT INTO user_history (hwid, desktop, ip, cpu, gpu, motherboard, ram, os_build, license_key, last_seen)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
