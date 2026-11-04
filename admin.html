@@ -217,7 +217,7 @@
     <div id="login-overlay">
         <div class="login-card">
             <h2>ASSMAR00</h2>
-            <p id="txt-restricted">Eingeschränkter Admin-Zugriff</p>
+            <p id="txt-restricted">Online Admin-Zugriff</p>
             <div class="fixed-user">👤 Assmar00</div>
             <input type="password" id="pass-input" placeholder="Passwort eingeben...">
             <button onclick="checkLogin()" id="btn-login">Zugriff Gewähren</button>
@@ -287,7 +287,7 @@
 
         <main>
             <header>
-                <h1>System Telemetrie</h1>
+                <h1>System Telemetrie (Render Online)</h1>
                 <div class="header-controls">
                     <select class="theme-selector" onchange="changeTheme(this.value)">
                         <option value="purple">💜 Neon Purple</option>
@@ -379,6 +379,7 @@
     </div>
 
     <script>
+        // WIEDER AUF RENDER URL EINGESTELLT
         const RENDER_URL = "https://ai-bot-1-zu9n.onrender.com";
         let currentStreamUser = "";
 
