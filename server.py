@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 On-Demand Control", version="24.0")
+app = FastAPI(title="Assmar00 On-Demand Control", version="26.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,7 +21,7 @@ app.add_middleware(
 
 DB_FILE = "database.db"
 active_streams = {}
-viewers_watching = set() # Speichert, welche Clients gerade aktiv im Browser angeschaut werden
+viewers_watching = set()
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -144,13 +144,18 @@ def client_heartbeat(data: ClientData):
     """, (data.desktop, data.custom_name, data.hwid, data.ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.game, data.license_key, data.expiry, data.fps))
     conn.commit()
     conn.close()
-    return {"status": "success"}
+    
+    # Teilt dem Client direkt mit, ob er streamen soll
+    is_active = data.desktop in viewers_watching
+    return {"status": "success", "stream_active": is_active}
 
-@app.get("/api/check_signal")
-def check_signal(user: str):
-    # Prüft, ob der Admin gerade den Stream für diesen User im Browser geöffnet hat
-    is_watching = user in viewers_watching
-    return {"stream": is_watching}
+@app.get("/api/stop_stream")
+def stop_stream(user: str):
+    if user in viewers_watching:
+        viewers_watching.remove(user)
+    if user in active_streams:
+        del active_streams[user]
+    return {"status": "stopped"}
 
 @app.post("/api/client/frame")
 def client_frame(data: FrameData):
@@ -163,7 +168,7 @@ def client_frame(data: FrameData):
 
 @app.get("/video_feed")
 def video_feed(user: str):
-    viewers_watching.add(user) # Signalisiert dem Client, dass er aufwachen und streamen soll
+    viewers_watching.add(user)
     def generate_stream():
         try:
             while True:
@@ -176,9 +181,8 @@ def video_feed(user: str):
                     _, encoded = cv2.imencode('.jpg', img)
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
-                time.sleep(0.1)
+                time.sleep(0.03)
         finally:
-            # Sobald der Admin den Browser/Tab schließt, geht der Client sofort wieder schlafen
             if user in viewers_watching:
                 viewers_watching.remove(user)
             if user in active_streams:
