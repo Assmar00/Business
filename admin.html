@@ -18,6 +18,50 @@
             --text-muted: #777799;
         }
 
+        body.theme-cyan {
+            --accent-color: #00f3ff;
+            --accent-hover: #33f6ff;
+            --accent-glow: rgba(0, 243, 255, 0.3);
+            --bg-gradient: radial-gradient(circle at 50% 0%, #041820 0%, #020608 100%);
+            --card-bg: #061014;
+            --card-border: #0d222a;
+            --input-bg: #0a1820;
+            --input-border: #14303d;
+        }
+
+        body.theme-crimson {
+            --accent-color: #ff0055;
+            --accent-hover: #ff3377;
+            --accent-glow: rgba(255, 0, 85, 0.3);
+            --bg-gradient: radial-gradient(circle at 50% 0%, #20040d 0%, #080204 100%);
+            --card-bg: #14060a;
+            --card-border: #2b0d16;
+            --input-bg: #1f0910;
+            --input-border: #3d1222;
+        }
+
+        body.theme-gold {
+            --accent-color: #ffaa00;
+            --accent-hover: #ffbb33;
+            --accent-glow: rgba(255, 170, 0, 0.3);
+            --bg-gradient: radial-gradient(circle at 50% 0%, #201504 0%, #080502 100%);
+            --card-bg: #140e06;
+            --card-border: #2b1f0d;
+            --input-bg: #1f1509;
+            --input-border: #3d2b12;
+        }
+
+        body.theme-matrix {
+            --accent-color: #00ff66;
+            --accent-hover: #33ff85;
+            --accent-glow: rgba(0, 255, 102, 0.3);
+            --bg-gradient: radial-gradient(circle at 50% 0%, #04200d 0%, #020804 100%);
+            --card-bg: #06140a;
+            --card-border: #0d2b16;
+            --input-bg: #0a1f10;
+            --input-border: #143d20;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
         
         body { 
@@ -25,34 +69,37 @@
             color: var(--text-main); 
             height: 100vh; 
             overflow: hidden; 
+            transition: all 0.3s ease;
         }
 
-        /* LOGIN OVERLAY */
+        @keyframes subtleGlow {
+            0% { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
+            50% { border-color: var(--accent-hover); box-shadow: 0 0 20px var(--accent-glow); }
+            100% { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
+        }
+
         #login-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(4, 4, 7, 0.96);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            backdrop-filter: blur(12px);
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(4, 4, 7, 0.96); display: flex; justify-content: center; align-items: center;
+            z-index: 9999; backdrop-filter: blur(12px);
         }
 
         .login-card {
-            background: var(--card-bg);
-            border: 1px solid var(--accent-color);
-            border-radius: 14px;
-            padding: 40px;
-            width: 360px;
-            text-align: center;
+            background: var(--card-bg); border: 1px solid var(--accent-color); border-radius: 14px;
+            padding: 40px; width: 360px; text-align: center; animation: subtleGlow 8s infinite;
         }
 
         .login-card h2 { font-size: 22px; font-weight: 800; margin-bottom: 6px; color: var(--accent-color); letter-spacing: 2px; }
+        .login-card p { font-size: 11px; color: #666688; margin-bottom: 25px; text-transform: uppercase; letter-spacing: 1px; }
+
+        .login-card .fixed-user {
+            background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-muted);
+            padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 15px; font-family: monospace; text-align: center;
+        }
+
         .login-card input {
-            width: 100%; background: var(--input-bg); border: 1px solid var(--input-border);
-            color: var(--accent-color); padding: 12px 16px; border-radius: 8px; font-size: 13px;
-            margin-bottom: 15px; outline: none; text-align: center;
+            width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); color: var(--accent-color);
+            padding: 12px 16px; border-radius: 8px; font-size: 13px; margin-bottom: 15px; outline: none; text-align: center;
         }
 
         .login-card button {
@@ -60,9 +107,9 @@
             font-weight: bold; border-radius: 8px; cursor: pointer; font-size: 13px; text-transform: uppercase;
         }
 
+        .login-card button:hover { background: var(--accent-hover); box-shadow: 0 0 15px var(--accent-glow); }
         #login-error { color: #ff4455; font-size: 11px; margin-top: 12px; font-family: monospace; font-weight: bold; }
 
-        /* HAUPT CONTAINER */
         #app-container { display: none; height: 100vh; display: flex; }
 
         sidebar { 
@@ -71,84 +118,261 @@
         }
 
         .logo { font-size: 18px; font-weight: 900; margin-bottom: 25px; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-color); padding-left: 8px; }
+        .nav-category { font-size: 10px; color: #555577; text-transform: uppercase; margin: 16px 0 6px 10px; font-weight: 700; letter-spacing: 1px; }
+
         .nav-btn { 
             background: transparent; border: 1px solid transparent; color: #777799; text-align: left; 
             padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; 
-            margin-bottom: 4px; width: 100%; 
+            margin-bottom: 4px; transition: 0.2s; width: 100%; 
         }
+
         .nav-btn:hover, .nav-btn.active { background: var(--input-bg); color: var(--accent-color); border-color: var(--input-border); }
 
         main { flex: 1; padding: 30px; overflow-y: auto; }
+
         header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 16px; margin-bottom: 22px; }
-        h1 { font-size: 18px; font-weight: 700; text-transform: uppercase; }
+        h1 { font-size: 18px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .header-controls { display: flex; gap: 12px; align-items: center; }
+        .theme-selector { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-main); padding: 6px 12px; border-radius: 8px; font-size: 12px; outline: none; cursor: pointer; }
+        .status-badge { background: var(--input-bg); border: 1px solid var(--accent-color); padding: 6px 14px; border-radius: 20px; font-size: 11px; color: var(--accent-color); font-family: monospace; font-weight: bold; }
 
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
-        .card h2 { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
 
-        input, textarea { 
+        .card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+        .card h2 { font-size: 12px; color: var(--text-muted); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.8px; font-weight: 700; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; }
+
+        label { display: block; font-size: 10px; color: #666688; margin-bottom: 5px; font-weight: 700; text-transform: uppercase; }
+        
+        input, select, textarea { 
             width: 100%; background: var(--input-bg); border: 1px solid var(--input-border); 
             color: var(--accent-color); padding: 9px 12px; border-radius: 6px; font-size: 12px; 
-            margin-bottom: 12px; outline: none; 
+            margin-bottom: 12px; outline: none; transition: 0.2s;
         }
 
-        button { background: var(--accent-color); color: #ffffff; border: none; padding: 9px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 12px; }
-        button:hover { background: var(--accent-hover); }
+        button { background: var(--accent-color); color: #ffffff; border: none; padding: 9px 16px; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+        button:hover { background: var(--accent-hover); box-shadow: 0 0 10px var(--accent-glow); }
 
-        .chat-box {
-            background: #04030a; border: 1px solid var(--card-border); border-radius: 8px; height: 220px;
-            overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;
+        .btn-danger { background: #7a151f; }
+        .btn-danger:hover { background: #a31c2a; }
+        .btn-secondary { background: var(--input-bg); color: #ccccdd; border: 1px solid var(--input-border); }
+        .btn-warning { background: #b8860b; color: #fff; }
+        .btn-warning:hover { background: #daa520; }
+        .btn-sm { padding: 4px 8px; font-size: 10px; margin-right: 3px; margin-bottom: 3px; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--card-border); font-size: 11px; }
+        th { color: #666688; text-transform: uppercase; font-size: 9px; }
+        td { color: #aaaacc; font-family: monospace; }
+        tr.user-row { cursor: pointer; transition: background 0.2s; }
+        tr.user-row:hover { background: var(--input-bg); }
+
+        .stats-box { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 8px; padding: 14px; text-align: center; }
+        .stats-num { font-size: 22px; font-weight: bold; color: var(--accent-color); font-family: monospace; margin-top: 4px; }
+
+        #user-modal {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 2, 5, 0.9); display: none; justify-content: center; align-items: center;
+            z-index: 10000; backdrop-filter: blur(10px);
         }
-        .chat-msg { max-width: 80%; padding: 8px 12px; border-radius: 8px; font-size: 11px; font-family: monospace; }
-        .msg-user { background: #1a1829; align-self: flex-start; border: 1px solid #2d2948; color: #ddd; }
-        .msg-admin { background: var(--accent-color); color: #fff; align-self: flex-end; font-weight: bold; }
+
+        .modal-card {
+            background: var(--card-bg); border: 1px solid var(--accent-color); border-radius: 14px;
+            width: 850px; max-height: 90vh; overflow-y: auto; padding: 25px; box-shadow: 0 0 30px var(--accent-glow);
+        }
+
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 12px; margin-bottom: 18px; }
+        .modal-title { font-size: 16px; font-weight: bold; color: var(--accent-color); font-family: monospace; }
+        .close-modal { cursor: pointer; font-size: 14px; background: #7a151f; color: #fff; padding: 6px 12px; border-radius: 6px; font-weight: bold; border: none; }
+        .close-modal:hover { background: #a31c2a; }
+
+        .modal-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .modal-tab-btn { background: var(--input-bg); border: 1px solid var(--input-border); color: var(--text-muted); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .modal-tab-btn.active { background: var(--accent-color); color: #fff; border-color: var(--accent-color); }
+        .modal-tab-pane { display: none; }
+        .modal-tab-pane.active { display: block; }
+
+        .msinfo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-family: monospace; font-size: 11px; }
+        .msinfo-item { background: var(--input-bg); border: 1px solid var(--input-border); padding: 10px; border-radius: 6px; }
+        .msinfo-item span { color: var(--text-muted); display: block; font-size: 9px; text-transform: uppercase; margin-bottom: 4px; }
+        .msinfo-item strong { color: var(--text-main); font-size: 11px; word-break: break-all; }
+
+        .screen-stream-box {
+            background: #020204; border: 1px solid var(--accent-color); border-radius: 8px; height: 380px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden;
+        }
+
+        .stream-overlay-info {
+            position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 4px 8px;
+            border-radius: 4px; font-family: monospace; font-size: 10px; color: var(--accent-color); border: 1px solid var(--input-border); z-index: 10;
+        }
     </style>
 </head>
 <body>
 
-    <!-- LOGIN SCREEN -->
     <div id="login-overlay">
         <div class="login-card">
             <h2>ASSMAR00</h2>
-            <p style="font-size: 11px; color: #666688; margin-bottom: 25px;">Eingeschränkter Admin-Zugriff</p>
+            <p id="txt-restricted">Eingeschränkter Admin-Zugriff</p>
+            <div class="fixed-user">👤 Assmar00</div>
             <input type="password" id="pass-input" placeholder="Passwort eingeben...">
-            <button onclick="checkLogin()">Zugriff Gewähren</button>
+            <button onclick="checkLogin()" id="btn-login">Zugriff Gewähren</button>
             <div id="login-error"></div>
         </div>
     </div>
 
-    <!-- MAIN PANEL CONTAINER -->
-    <div id="app-container">
+    <div id="user-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <div class="modal-title" id="m-user-title">SYSTEM INSPECTOR // USER_UNKNOWN</div>
+                <button class="close-modal" onclick="closeUserModal()">✕ CLOSE & STOP STREAM</button>
+            </div>
+
+            <div class="modal-tabs">
+                <button class="modal-tab-btn active" onclick="switchModalTab('info', this)">💻 System Info (msinfo32)</button>
+                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)">🔴 Live Screen View</button>
+            </div>
+
+            <div id="modal-tab-info" class="modal-tab-pane active">
+                <div class="msinfo-grid">
+                    <div class="msinfo-item"><span>Disk Hardware ID (HWID Hash)</span><strong id="m-hwid">--</strong></div>
+                    <div class="msinfo-item"><span>IP Adresse & Standort</span><strong id="m-ip">--</strong></div>
+                    <div class="msinfo-item"><span>Prozessor (CPU)</span><strong id="m-cpu">--</strong></div>
+                    <div class="msinfo-item"><span>Grafikkarte (GPU)</span><strong id="m-gpu">--</strong></div>
+                    <div class="msinfo-item"><span>Mainboard Seriennummer</span><strong id="m-motherboard">--</strong></div>
+                    <div class="msinfo-item"><span>Arbeitsspeicher (RAM)</span><strong id="m-ram">--</strong></div>
+                    <div class="msinfo-item"><span>Betriebssystem (OS Build)</span><strong id="m-os">--</strong></div>
+                    <div class="msinfo-item"><span>Aktives Game-Profil</span><strong id="m-game">--</strong></div>
+                    <div class="msinfo-item"><span>Lizenz-Schlüssel</span><strong id="m-key">--</strong></div>
+                    <div class="msinfo-item"><span>Laufzeit Verbleibend</span><strong id="m-expiry">--</strong></div>
+                </div>
+            </div>
+
+            <div id="modal-tab-stream" class="modal-tab-pane">
+                <div class="screen-stream-box">
+                    <div class="stream-overlay-info">STREAM: ON-DEMAND (0.0% Last bei Inaktivität)</div>
+                    <img id="live-video-feed" src="" alt="Warte auf Client-Stream..." style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; border-top: 1px solid var(--card-border); padding-top: 15px;">
+                <h3 style="font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 10px;">Einzel-User Aktionen</h3>
+                
+                <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                    <input type="text" id="modal-msg-input" placeholder="Direkte Pop-up Nachricht an diesen User schreiben..." style="margin-bottom:0;">
+                    <button class="btn-secondary" onclick="sendModalUserMessage()">Senden</button>
+                </div>
+
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn-danger" style="background:#ff0000; width: 100%;" onclick="banModalUser()">Bann User (Disk & IP sperren)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-container" style="display: none;">
         <sidebar>
             <div class="logo">ASSMAR00</div>
-            <button class="nav-btn active" onclick="switchTab('tickets', this)">🎫 Live Nachrichten & Support</button>
+            
+            <div class="nav-category">1. Kern-Steuerung</div>
+            <button class="nav-btn active" onclick="switchTab('dashboard', this)">📊 Telemetrie & Übersicht</button>
+            <button class="nav-btn" onclick="switchTab('licenses', this)">🔑 Master Key & God-Mode Manager</button>
+            <button class="nav-btn" onclick="switchTab('users', this)">👥 Desktop-Namen & Sessions</button>
+            <button class="nav-btn" onclick="switchTab('bans', this)">⛔ Sperrliste & IP-Sperren</button>
         </sidebar>
 
         <main>
             <header>
-                <h1>Admin Control Center</h1>
+                <h1>System Telemetrie</h1>
+                <div class="header-controls">
+                    <select class="theme-selector" onchange="changeTheme(this.value)">
+                        <option value="purple">💜 Neon Purple</option>
+                        <option value="cyan">🩵 Cyber Cyan</option>
+                        <option value="crimson">🔴 Crimson Red</option>
+                        <option value="gold">🟡 Gold Sunset</option>
+                        <option value="matrix">🟢 Matrix Green</option>
+                    </select>
+                    <div class="status-badge" id="txt-welcome">WILLKOMMEN ZURÜCK, ASSMAR00</div>
+                </div>
             </header>
 
-            <!-- CHAT / NACHRICHTEN TAB -->
-            <div id="tickets" class="tab-content active">
+            <div id="dashboard" class="tab-content active">
+                <div class="grid-4" style="margin-bottom: 20px;">
+                    <div class="stats-box"><label>Aktive Clients</label><div class="stats-num" id="stat-clients">0</div></div>
+                    <div class="stats-box"><label>Hintergrund-Last</label><div class="stats-num" style="color:#00ff66;">0.0%</div></div>
+                    <div class="stats-box"><label>Keys Gesamt</label><div class="stats-num">1,280</div></div>
+                    <div class="stats-box"><label>Status</label><div class="stats-num" style="color:var(--accent-color);">ONLINE</div></div>
+                </div>
+            </div>
+
+            <div id="licenses" class="tab-content">
+                <div class="grid-2">
+                    <div class="card">
+                        <h2>Neuen Key generieren</h2>
+                        <label>Key-Code eingeben</label><input type="text" id="new-key-code" placeholder="Z.B. ASR-1234-TEST">
+                        <label>Notiz</label><input type="text" id="new-key-note" placeholder="Für wen?">
+                        <label>Ablaufdatum</label><input type="date" id="new-key-expiry">
+                        <button onclick="createKey()">Key In Datenbank Erstellen</button>
+                    </div>
+
+                    <div class="card" style="max-height: 480px; overflow-y: auto;">
+                        <h2>Key Management & Disk-Bindung</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Key, Notiz & Disk-HWID</th>
+                                    <th>Status & Ablauf</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody id="keys-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="users" class="tab-content">
                 <div class="card">
-                    <h2>Live-Nachricht an Client senden (Pop-up)</h2>
-                    
-                    <div style="margin-bottom: 12px; font-size: 11px; font-family: monospace;">
-                        <div><strong>Ziel-Desktop (Hostname):</strong> <input type="text" id="target-desktop" value="ASSMAR-PC" style="margin-top: 5px;"></div>
-                    </div>
+                    <h2>Aktive Live-Sessions (Klick für msinfo32 / Stream / Nachricht)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Windows Desktop-Name</th>
+                                <th>Disk HWID Hash</th>
+                                <th>IP-Adresse</th>
+                                <th>Aktives Game</th>
+                                <th>Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
 
-                    <label>Live-Chat / Nachricht an den Loader des Users:</label>
-                    <div class="chat-box" id="chat-messages">
-                        <div class="chat-msg msg-admin"><strong>System: Bereit für Nachrichten...</strong></div>
-                    </div>
+            <div id="bans" class="tab-content">
+                <div class="card">
+                    <h2>Hardware & IP Sperrliste (Manuell Bannen)</h2>
+                    <label>HWID oder IP-Adresse eingeben</label>
+                    <input type="text" id="manual-ban-input" placeholder="z.B. 192.168.1.50 oder Disk-HWID-Hash">
+                    <button class="btn-danger" onclick="manualBan()">Permanent Sperren</button>
+                </div>
 
-                    <div style="display: flex; gap: 8px;">
-                        <input type="text" id="chat-input" placeholder="Nachricht in den Loader senden..." style="margin-bottom: 0;">
-                        <button onclick="sendChatMessage()">Senden</button>
-                    </div>
+                <div class="card" style="margin-top: 20px;">
+                    <h2>Aktive Sperrliste (Gebannte IPs & Disk HWIDs)</h2>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Gebannte Disk-HWID / Hash</th>
+                                <th>Zugehörige IP</th>
+                                <th>Aktion</th>
+                            </tr>
+                        </thead>
+                        <tbody id="bans-table-body"></tbody>
+                    </table>
                 </div>
             </div>
         </main>
@@ -156,14 +380,17 @@
 
     <script>
         const RENDER_URL = "https://ai-bot-1-zu9n.onrender.com";
+        let currentStreamUser = "";
 
         function checkLogin() {
             const pass = document.getElementById('pass-input').value.trim();
             const err = document.getElementById('login-error');
-
             if (pass === "Assmar00.550662.-?") {
                 document.getElementById('login-overlay').style.display = 'none';
                 document.getElementById('app-container').style.display = 'flex';
+                loadUsers();
+                loadKeys();
+                loadBans();
             } else {
                 err.innerText = "ACCESS DENIED: Falsches Passwort!";
                 document.getElementById('pass-input').value = "";
@@ -181,34 +408,232 @@
             document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
             btn.classList.add('active');
+            if(tabId === 'users') loadUsers();
+            if(tabId === 'licenses') loadKeys();
+            if(tabId === 'bans') loadBans();
         }
 
-        function sendChatMessage() {
-            const input = document.getElementById('chat-input');
+        function switchModalTab(tabName, btn) {
+            document.querySelectorAll('.modal-tab-pane').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.modal-tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('modal-tab-' + tabName).classList.add('active');
+            btn.classList.add('active');
+        }
+
+        function changeTheme(themeName) {
+            document.body.className = '';
+            if (themeName !== 'purple') {
+                document.body.classList.add('theme-' + themeName);
+            }
+        }
+
+        function loadUsers() {
+            fetch(`${RENDER_URL}/api/users`)
+            .then(res => res.json())
+            .then(users => {
+                const tbody = document.getElementById('users-table-body');
+                tbody.innerHTML = "";
+                document.getElementById('stat-clients').innerText = users.length;
+                
+                users.forEach(u => {
+                    tbody.innerHTML += `
+                        <tr class="user-row" onclick="openUserModal('${u.desktop}', '${u.ip}', '${u.cpu}', '${u.gpu}', '${u.motherboard}', '${u.ram}', '${u.os_build}', '${u.game}', '${u.license_key}', '${u.expiry}', '${u.hwid}')">
+                            <td><strong>${u.desktop}</strong></td>
+                            <td>${u.hwid ? u.hwid.substring(0, 16) + '...' : 'Disk-OK'}</td>
+                            <td style="color:#00f3ff;">${u.ip}</td>
+                            <td style="color:var(--accent-color);">${u.game}</td>
+                            <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;">Inspect & Live</button></td>
+                        </tr>
+                    `;
+                });
+            }).catch(err => console.error(err));
+        }
+
+        function openUserModal(name, ip, cpu, gpu, mobo, ram, os, game, key, expiry, hwid) {
+            currentStreamUser = name;
+            document.getElementById('m-user-title').innerText = "SYSTEM INSPECTOR & LIVE VIEW // " + name;
+            document.getElementById('m-hwid').innerText = hwid || "Hash Verifiziert";
+            document.getElementById('m-ip').innerText = ip || "127.0.0.1";
+            document.getElementById('m-cpu').innerText = cpu || "CPU Info";
+            document.getElementById('m-gpu').innerText = gpu || "GPU Info";
+            document.getElementById('m-motherboard').innerText = mobo || "Mainboard Info";
+            document.getElementById('m-ram').innerText = ram || "RAM Info";
+            document.getElementById('m-os').innerText = os || "Windows Build";
+            document.getElementById('m-game').innerText = game || "Idle";
+            document.getElementById('m-key').innerText = key || "Standard Key";
+            document.getElementById('m-expiry').innerText = expiry || "Lifetime";
+
+            document.getElementById('live-video-feed').src = `${RENDER_URL}/video_feed?user=` + name;
+            document.getElementById('user-modal').style.display = 'flex';
+        }
+
+        function closeUserModal() {
+            document.getElementById('user-modal').style.display = 'none';
+            document.getElementById('live-video-feed').src = "";
+            if (currentStreamUser) {
+                fetch(`${RENDER_URL}/api/stop_stream?user=` + currentStreamUser).catch(()=>{});
+                currentStreamUser = "";
+            }
+        }
+
+        function banModalUser() {
+            if (!currentStreamUser) return;
+
+            fetch(`${RENDER_URL}/api/admin/ban_user`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ desktop: currentStreamUser })
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert(`User ${currentStreamUser} wurde permanent gebannt (Disk & IP gesperrt)!`);
+                closeUserModal();
+                loadUsers();
+                loadBans();
+            });
+        }
+
+        function sendModalUserMessage() {
+            const input = document.getElementById('modal-msg-input');
             const msgText = input.value.trim();
-            const targetDesktop = document.getElementById('target-desktop').value.trim();
-            
-            if(!msgText || !targetDesktop) return;
+            if(!msgText || !currentStreamUser) return alert("Bitte Nachricht eingeben!");
 
             fetch(`${RENDER_URL}/api/admin/send_message`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ desktop: targetDesktop, message: msgText })
+                body: JSON.stringify({ desktop: currentStreamUser, message: msgText })
             })
-            .then(res => res.json())
-            .then(data => {
-                const chatBox = document.getElementById('chat-messages');
-                const newMsg = document.createElement('div');
-                newMsg.className = "chat-msg msg-admin";
-                newMsg.innerHTML = `<strong>Admin (an ${targetDesktop}):</strong> ` + msgText;
-                chatBox.appendChild(newMsg);
-
+            .then(() => {
+                alert(`Nachricht an ${currentStreamUser} gesendet!`);
                 input.value = "";
-                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+        }
+
+        function loadBans() {
+            fetch(`${RENDER_URL}/api/bans`)
+            .then(res => res.json())
+            .then(bans => {
+                const tbody = document.getElementById('bans-table-body');
+                tbody.innerHTML = "";
+                bans.forEach(b => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong style="color:#ff4455;">${b.hwid}</strong></td>
+                            <td>${b.ip || '--'}</td>
+                            <td><button class="btn-secondary btn-sm" onclick="unbanUser('${b.hwid}')">Entbannen</button></td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        function manualBan() {
+            const val = document.getElementById('manual-ban-input').value.trim();
+            if(!val) return alert("Disk-HWID oder IP eingeben!");
+
+            fetch(`${RENDER_URL}/api/admin/ban_user`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ target: val })
             })
-            .catch(err => {
-                alert("Fehler beim Senden der Nachricht an den Server!");
-                console.error(err);
+            .then(() => {
+                alert("Ziel permanent gebannt!");
+                document.getElementById('manual-ban-input').value = "";
+                loadBans();
+            });
+        }
+
+        function unbanUser(hwid) {
+            fetch(`${RENDER_URL}/api/admin/unban_user`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ hwid: hwid })
+            })
+            .then(() => {
+                alert("Sperre aufgehoben!");
+                loadBans();
+            });
+        }
+
+        function loadKeys() {
+            fetch(`${RENDER_URL}/api/keys`)
+            .then(res => res.json())
+            .then(keys => {
+                const tbody = document.getElementById('keys-table-body');
+                tbody.innerHTML = "";
+                keys.forEach(k => {
+                    const statusColor = k.status === 'Unbenutzt' ? '#ffaa00' : '#00ff66';
+                    const boundInfo = k.bound_hwid ? `<br><span style="font-size:9px; color:#00f3ff;">Disk: ${k.bound_hwid.substring(0, 16)}...</span>` : `<br><span style="font-size:9px; color:#777;">Noch ungebunden</span>`;
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><strong style="color:var(--accent-color);">${k.key_code}</strong><br><span style="font-size:9px; color:#777;">${k.note}</span>${boundInfo}</td>
+                            <td><span style="color:${statusColor};">${k.status}</span><br><span style="font-size:9px; color:#777;">Ablauf: ${k.expiry}</span></td>
+                            <td>
+                                <button class="btn-secondary btn-sm" onclick="resetKeyHwid('${k.key_code}')">Disk Reset</button>
+                                <button class="btn-secondary btn-sm" onclick="extendKey('${k.key_code}')">+1 Tag</button>
+                                <button class="btn-warning btn-sm" onclick="toggleKeyStatus('${k.key_code}', '${k.status}')">Freeze</button>
+                                <button class="btn-danger btn-sm" onclick="deleteKey('${k.key_code}')">Löschen</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        function createKey() {
+            const code = document.getElementById('new-key-code').value.trim();
+            const note = document.getElementById('new-key-note').value.trim();
+            const expiry = document.getElementById('new-key-expiry').value.trim() || '2026-12-31';
+            if(!code) return alert("Bitte Key-Code eingeben!");
+
+            fetch(`${RENDER_URL}/api/keys/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key_code: code, note: note, expiry: expiry })
+            })
+            .then(() => {
+                alert("Key erstellt!");
+                document.getElementById('new-key-code').value = "";
+                loadKeys();
+            });
+        }
+
+        function deleteKey(code) {
+            fetch(`${RENDER_URL}/api/keys/delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key_code: code })
+            }).then(() => loadKeys());
+        }
+
+        function toggleKeyStatus(code, currentStatus) {
+            const newStatus = currentStatus === 'Pausiert' ? 'Aktiviert' : 'Pausiert';
+            fetch(`${RENDER_URL}/api/keys/update_status`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key_code: code, status: newStatus })
+            }).then(() => loadKeys());
+        }
+
+        function extendKey(code) {
+            fetch(`${RENDER_URL}/api/keys/extend`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key_code: code })
+            }).then(() => {
+                alert("Key um 1 Tag verlängert!");
+                loadKeys();
+            });
+        }
+
+        function resetKeyHwid(code) {
+            fetch(`${RENDER_URL}/api/keys/reset_hwid`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key_code: code })
+            }).then(() => {
+                alert("Key-Disk-Bindung zurückgesetzt (Status: Unbenutzt)!");
+                loadKeys();
             });
         }
     </script>
