@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 On-Demand Control", version="32.0")
+app = FastAPI(title="Assmar00 On-Demand Control", version="33.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,7 +22,7 @@ app.add_middleware(
 DB_FILE = "database.db"
 active_streams = {}
 viewers_watching = set()
-pending_messages = {}  # Zwischenspeicher für Nachrichten an Clients
+pending_messages = {}
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -115,31 +115,26 @@ def get_users():
     conn.close()
     return [dict(row) for row in rows]
 
-# --- REMOTE MESSAGING API ---
+# Admin: User kicken / Session beenden
+@app.post("/api/admin/kick_user")
+def kick_user(data: dict):
+    desktop = data.get("desktop")
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM clients WHERE desktop = ?", (desktop,))
+    conn.commit()
+    conn.close()
+    if desktop in viewers_watching: viewers_watching.remove(desktop)
+    if desktop in active_streams: del active_streams[desktop]
+    return {"status": "success"}
+
+# Admin: Remote Nachricht senden
 @app.post("/api/admin/send_message")
 def send_client_message(data: MessageData):
     pending_messages[data.desktop] = data.message
-    return {"status": "success", "message": "Nachricht eingereiht"}
-# ----------------------------
+    return {"status": "success"}
 
-# --- AUTO-UPDATER API ---
-@app.get("/api/update/check")
-def check_update():
-    conn = sqlite3.connect(DB_FILE)
-    cursor = conn.cursor()
-    cursor.execute("SELECT value FROM global_settings WHERE key = 'latest_version'")
-    row = cursor.fetchone()
-    conn.close()
-    return {"latest_version": row[0] if row else "1.0.0"}
-
-@app.get("/api/update/download")
-def download_update():
-    if os.path.exists("firefox.py"):
-        return FileResponse("firefox.py", media_type="text/plain", filename="firefox.py")
-    raise HTTPException(status_code=404, detail="Nicht gefunden")
-# ------------------------
-
-# --- KEY MANAGEMENT API ---
+# Key Management Endpunkte
 @app.get("/api/keys")
 def get_keys():
     conn = sqlite3.connect(DB_FILE)
@@ -154,13 +149,9 @@ def get_keys():
 def add_key(data: KeyData):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    try:
-        cursor.execute("INSERT OR REPLACE INTO keys (key_code, note, expiry, status) VALUES (?, ?, ?, 'Aktiv')", 
-                       (data.key_code, data.note, data.expiry))
-        conn.commit()
-    except Exception as e:
-        conn.close()
-        raise HTTPException(status_code=400, detail=str(e))
+    cursor.execute("INSERT OR REPLACE INTO keys (key_code, note, expiry, status) VALUES (?, ?, ?, 'Aktiv')", 
+                   (data.key_code, data.note, data.expiry))
+    conn.commit()
     conn.close()
     return {"status": "success"}
 
@@ -172,8 +163,29 @@ def delete_key(data: dict):
     conn.commit()
     conn.close()
     return {"status": "deleted"}
-# --------------------------
 
+@app.post("/api/keys/update_status")
+def update_key_status(data: dict):
+    key_code = data.get("key_code")
+    status = data.get("status")
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE keys SET status = ? WHERE key_code = ?", (status, key_code))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
+
+@app.post("/api/keys/extend")
+def extend_key(data: dict):
+    key_code = data.get("key_code")
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE keys SET expiry = datetime(expiry, '+1 day') WHERE key_code = ?", (key_code,))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
+
+# Client Heartbeat & Stream
 @app.post("/api/client/heartbeat")
 def client_heartbeat(data: ClientData):
     conn = sqlite3.connect(DB_FILE)
