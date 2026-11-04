@@ -31,7 +31,6 @@
         
         .stream-controls { display: flex; justify-content: space-between; align-items: center; background: #0d0d14; padding: 10px 15px; border-radius: 6px; border: 1px solid #151520; }
         .control-group { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #aaa; }
-        select { background: #030305; color: #00f3ff; border: 1px solid #151520; padding: 5px 10px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -69,19 +68,9 @@
             
             <div class="stream-controls">
                 <div class="control-group">
-                    DAUER: 
-                    <select id="durationSelect">
-                        <option value="30">30 Sekunden</option>
-                        <option value="60" selected>1 Minute</option>
-                        <option value="120">2 Minuten</option>
-                        <option value="300">5 Minuten</option>
-                    </select>
+                    STATUS: <span style="color: #00ff66;">Live Stream aktiv</span>
                 </div>
-                <div class="control-group">
-                    BILDRATE (FPS): 
-                    <span style="color: #00f3ff;">60 FPS (Auto)</span>
-                </div>
-                <button class="btn btn-danger" onclick="closeStream()">Close / Stop</button>
+                <button class="btn btn-danger" onclick="closeStream()">Close</button>
             </div>
         </div>
     </div>
@@ -120,18 +109,15 @@
 
         function openStream(desktop) {
             activeUser = desktop;
-            const duration = document.getElementById('durationSelect').value;
-            document.getElementById('modalTitle').innerText = `LIVE VIEW // ${desktop} (${duration}s Timer)`;
+            document.getElementById('modalTitle').innerText = `LIVE VIEW // ${desktop}`;
             document.getElementById('streamModal').style.display = 'flex';
-            
-            // Startet den Feed mit der ausgewählten Sekundenzahl
-            document.getElementById('videoStream').src = `${RENDER_URL}/video_feed?user=${encodeURIComponent(desktop)}&duration=${duration}`;
+            document.getElementById('videoStream').src = `${RENDER_URL}/video_feed?user=${encodeURIComponent(desktop)}`;
         }
 
         function closeStream() {
             if (activeUser) {
                 fetch(`${RENDER_URL}/api/stop_stream?user=${encodeURIComponent(activeUser)}`)
-                    .then(() => console.log("Stream manuell gestoppt."))
+                    .then(() => console.log("Stream gestoppt."))
                     .catch(err => console.log("Fehler:", err));
             }
             
