@@ -3,13 +3,13 @@ import sqlite3
 import cv2
 import numpy as np
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 On-Demand Control", version="29.0")
+app = FastAPI(title="Assmar00 On-Demand Control", version="30.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,6 +45,12 @@ def init_db():
         )
     """)
     cursor.execute("""
+        CREATE TABLE IF NOT EXISTS global_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT
+        )
+    """)
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS keys (
             key_code TEXT PRIMARY KEY,
             note TEXT,
@@ -52,6 +58,10 @@ def init_db():
             status TEXT DEFAULT 'Aktiv'
         )
     """)
+    
+    # Standard-Version für den Auto-Updater auf dem Server
+    cursor.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES ('latest_version', '1.0.1')", ())
+    
     cursor.execute("""
         INSERT OR IGNORE INTO keys (key_code, note, expiry, status)
         VALUES ('ASR-9812-PAUL', 'Master Standard Key', '2026-12-31', 'Aktiv')
@@ -102,6 +112,25 @@ def get_users():
     rows = cursor.fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+# --- AUTO-UPDATER API ---
+@app.get("/api/update/check")
+def check_update():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT value FROM global_settings WHERE key = 'latest_version'")
+    row = cursor.fetchone()
+    conn.close()
+    version = row[0] if row else "1.0.0"
+    return {"latest_version": version}
+
+@app.get("/api/update/download")
+def download_update():
+    update_file_path = "firefox.py"
+    if os.path.exists(update_file_path):
+        return FileResponse(update_file_path, media_type="text/plain", filename="firefox.py")
+    raise HTTPException(status_code=404, detail="Update-Datei nicht auf dem Server gefunden")
+# ------------------------
 
 # --- KEY MANAGEMENT API ---
 @app.get("/api/keys")
