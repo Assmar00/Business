@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 On-Demand Control", version="31.0")
+app = FastAPI(title="Assmar00 On-Demand Control", version="32.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -22,7 +22,7 @@ app.add_middleware(
 DB_FILE = "database.db"
 active_streams = {}
 viewers_watching = set()
-pending_messages = {}  # Zwischenspeicher für Remote-Nachrichten an Clients
+pending_messages = {}  # Zwischenspeicher für Nachrichten an Clients
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -191,7 +191,6 @@ def client_heartbeat(data: ClientData):
     conn.commit()
     conn.close()
     
-    # Nachricht für diesen Client abholen (falls vorhanden)
     alert_msg = pending_messages.pop(data.desktop, None)
     is_active = data.desktop in viewers_watching
     return {"status": "success", "stream_active": is_active, "alert_message": alert_msg}
