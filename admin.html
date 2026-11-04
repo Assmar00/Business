@@ -277,6 +277,7 @@
             <button class="nav-btn" onclick="switchTab('users', this)">👥 Live-Sessions (Online)</button>
             <button class="nav-btn" onclick="switchTab('history', this)">🏦 UserBank (Alle)</button>
             <button class="nav-btn" onclick="switchTab('bans', this)">⛔ Sperrliste & IP-Sperren</button>
+            <button class="nav-btn" onclick="switchTab('masscmd', this)">⚡ Globaler Massen-Befehl</button>
             <button class="nav-btn" onclick="switchTab('servercore', this)">🛠️ Server-Kern & Kill-Switch</button>
         </sidebar>
 
@@ -301,6 +302,21 @@
                     <div class="stats-box"><label>Keys Gesamt (DB)</label><div class="stats-num" id="stat-keys">0</div></div>
                     <div class="stats-box"><label>Nutzer Historie Total</label><div class="stats-num" id="stat-history">0</div></div>
                     <div class="stats-box"><label>System Status</label><div class="stats-num" style="color:var(--accent-color);" id="stat-sys-status">ONLINE</div></div>
+                </div>
+            </div>
+
+            <!-- GLOBALER MASSEN-BEFEHL TAB -->
+            <div id="masscmd" class="tab-content">
+                <div class="card" style="max-width: 550px;">
+                    <h2>⚡ Globaler Massen-Befehl an Clients</h2>
+                    <label>Befehl auswählen</label>
+                    <select id="mass-command-select">
+                        <option value="reboot">Alle Clients zum Neustart zwingen</option>
+                        <option value="clear_cache">Lokalen Cache leeren</option>
+                        <option value="minimize">Alle Loader minimieren</option>
+                        <option value="emergency_lock">Notfall-Sperre aktivieren</option>
+                    </select>
+                    <button onclick="fireMassCommand()" style="margin-top: 10px;">Befehl Abfeuern</button>
                 </div>
             </div>
 
@@ -462,6 +478,19 @@
             if (themeName !== 'purple') {
                 document.body.classList.add('theme-' + themeName);
             }
+        }
+
+        function fireMassCommand() {
+            const cmd = document.getElementById('mass-command-select').value;
+            fetch(`${RENDER_URL}/api/admin/mass_command`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ command: cmd })
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert(`Globaler Befehl (${cmd}) erfolgreich an alle Clients abgefeuert!`);
+            });
         }
 
         function loadSettings() {
