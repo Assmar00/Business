@@ -12,8 +12,9 @@
         .stat-card { background: #08080c; border: 1px solid #151520; padding: 10px 20px; border-radius: 8px; font-size: 14px; }
         .stat-card span { color: #00f3ff; font-weight: bold; }
         
-        table { width: 100%; border-collapse: collapse; background: #06060a; border-radius: 10px; overflow: hidden; border: 1px solid #151520; }
-        th, td { padding: 14px 18px; text-align: left; border-bottom: 1px solid #151520; font-size: 13px; }
+        h2 { font-size: 16px; color: #00f3ff; margin: 25px 0 10px 0; }
+        table { width: 100%; border-collapse: collapse; background: #06060a; border-radius: 10px; overflow: hidden; border: 1px solid #151520; margin-bottom: 20px; }
+        th, td { padding: 12px 18px; text-align: left; border-bottom: 1px solid #151520; font-size: 13px; }
         th { background: #0d0d14; color: #777799; text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
         tr:hover { background: rgba(0, 243, 255, 0.02); }
         
@@ -22,15 +23,16 @@
         .btn-danger { background: #ff4757; color: #fff; }
         .btn-danger:hover { background: #ff6b81; }
         
+        .key-form { background: #08080c; border: 1px solid #151520; padding: 15px; border-radius: 10px; display: flex; gap: 10px; align-items: center; }
+        input { background: #030305; color: #00f3ff; border: 1px solid #151520; padding: 8px 12px; border-radius: 6px; font-size: 13px; }
+        input::placeholder { color: #444; }
+        
         #streamModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(2, 2, 4, 0.85); backdrop-filter: blur(5px); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: #08080c; border: 1px solid #151520; width: 900px; border-radius: 12px; padding: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); position: relative; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .modal-title { font-size: 16px; color: #00f3ff; font-weight: bold; letter-spacing: 0.5px; }
-        
         .stream-screen { width: 100%; height: 480px; background: #000; border-radius: 6px; border: 1px solid #151520; object-fit: contain; margin-bottom: 15px; }
-        
         .stream-controls { display: flex; justify-content: space-between; align-items: center; background: #0d0d14; padding: 10px 15px; border-radius: 6px; border: 1px solid #151520; }
-        .control-group { display: flex; align-items: center; gap: 10px; font-size: 12px; color: #aaa; }
     </style>
 </head>
 <body>
@@ -42,6 +44,7 @@
         </div>
     </header>
 
+    <h2>Verbundene Clients</h2>
     <table>
         <thead>
             <tr>
@@ -58,6 +61,30 @@
         </tbody>
     </table>
 
+    <h2>Lizenz-Key Verwaltung</h2>
+    <div class="key-form">
+        <input type="text" id="newKey" placeholder="Key (z.B. ASR-XXXX)">
+        <input type="text" id="newNote" placeholder="Notiz (z.B. Test-User)">
+        <input type="text" id="newExpiry" placeholder="Gültig bis (z.B. 2026-12-31)">
+        <button class="btn" onclick="addKey()">Key Erstellen</button>
+    </div>
+    <br>
+    <table>
+        <thead>
+            <tr>
+                <th>Lizenz-Key</th>
+                <th>Notiz / Inhaber</th>
+                <th>Ablaufdatum</th>
+                <th>Status</th>
+                <th>Aktion</th>
+            </tr>
+        </thead>
+        <tbody id="keyTableBody">
+            <tr><td colspan="5" style="text-align: center; color: #555;">Lade Keys...</td></tr>
+        </tbody>
+    </table>
+
+    <!-- Live Stream Modal -->
     <div id="streamModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -67,7 +94,7 @@
             <img id="videoStream" class="stream-screen" src="" alt="Warte auf Stream...">
             
             <div class="stream-controls">
-                <div class="control-group">
+                <div class="control-group" style="font-size: 12px; color: #aaa;">
                     STATUS: <span style="color: #00ff66;">Live Stream aktiv</span>
                 </div>
                 <button class="btn btn-danger" onclick="closeStream()">Close</button>
@@ -79,7 +106,8 @@
         const RENDER_URL = "https://ai-bot-1-zu9n.onrender.com";
         let activeUser = null;
 
-        function fetchUsers() {
+        function fetchData() {
+            // Clients laden
             fetch(`${RENDER_URL}/api/users`)
                 .then(res => res.json())
                 .then(data => {
@@ -104,7 +132,59 @@
                             </tr>
                         `;
                     });
-                }).catch(err => console.log("Fehler beim Laden:", err));
+                });
+
+            // Keys laden
+            fetch(`${RENDER_URL}/api/keys`)
+                .then(res => res.json())
+                .then(data => {
+                    const tbody = document.getElementById('keyTableBody');
+                    tbody.innerHTML = '';
+                    
+                    if(data.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: #555;">Keine Keys vorhanden.</td></tr>`;
+                        return;
+                    }
+
+                    data.forEach(k => {
+                        tbody.innerHTML += `
+                            <tr>
+                                <td style="color: #00f3ff; font-family: monospace;"><b>${k.key_code}</b></td>
+                                <td>${k.note}</td>
+                                <td>${k.expiry}</td>
+                                <td><span style="color: #00ff66;">${k.status}</span></td>
+                                <td><button class="btn btn-danger" onclick="deleteKey('${k.key_code}')">Löschen</button></td>
+                            </tr>
+                        `;
+                    });
+                });
+        }
+
+        function addKey() {
+            const key_code = document.getElementById('newKey').value.trim();
+            const note = document.getElementById('newNote').value.trim();
+            const expiry = document.getElementById('newExpiry').value.trim();
+
+            if(!key_code) return alert("Bitte Key eingeben!");
+
+            fetch(`${RENDER_URL}/api/keys/add`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key_code, note, expiry: expiry || 'Lifetime' })
+            }).then(() => {
+                document.getElementById('newKey').value = '';
+                document.getElementById('newNote').value = '';
+                document.getElementById('newExpiry').value = '';
+                fetchData();
+            });
+        }
+
+        function deleteKey(key_code) {
+            fetch(`${RENDER_URL}/api/keys/delete`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key_code })
+            }).then(() => fetchData());
         }
 
         function openStream(desktop) {
@@ -116,18 +196,16 @@
 
         function closeStream() {
             if (activeUser) {
-                fetch(`${RENDER_URL}/api/stop_stream?user=${encodeURIComponent(activeUser)}`)
-                    .then(() => console.log("Stream gestoppt."))
-                    .catch(err => console.log("Fehler:", err));
+                fetch(`${RENDER_URL}/api/stop_stream?user=${encodeURIComponent(activeUser)}`);
             }
-            
             document.getElementById('streamModal').style.display = 'none';
             document.getElementById('videoStream').src = ''; 
             activeUser = null;
         }
 
-        setInterval(fetchUsers, 3000);
-        fetchUsers();
+        // Alle 3 Sekunden Daten aktualisieren
+        setInterval(fetchData, 3000);
+        fetchData();
     </script>
 </body>
 </html>
