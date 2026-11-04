@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Control Panel", version="45.0")
+app = FastAPI(title="Assmar00 Control Panel", version="46.0")
 
 app.add_middleware(
     CORSMiddleware,
