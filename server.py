@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Control Panel", version="51.0")
+app = FastAPI(title="Assmar00 Control Panel", version="52.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -274,6 +274,15 @@ def update_key_status(data: dict):
     conn.close()
     return {"status": "success"}
 
+@app.post("/api/keys/pause_all")
+def pause_all_keys():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE keys SET status = 'Pausiert'")
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
+
 @app.post("/api/keys/extend")
 def extend_key(data: dict):
     key_code = data.get("key_code")
@@ -352,7 +361,7 @@ def client_heartbeat(data: ClientData):
     is_active = data.desktop in viewers_watching
     
     current_cmd = global_mass_command
-    global_mass_command = None # Befehl sofort zurücksetzen, damit er sich nicht wiederholt!
+    global_mass_command = None
 
     return {
         "status": "success", 
