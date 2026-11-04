@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 On-Demand Control", version="26.0")
+app = FastAPI(title="Assmar00 On-Demand Control", version="27.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,7 +21,7 @@ app.add_middleware(
 
 DB_FILE = "database.db"
 active_streams = {}
-viewers_watching = set()
+stream_deadlines = {} # Speichert, bis wann (Timestamp) der Stream aktiv sein darf
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -145,46 +145,65 @@ def client_heartbeat(data: ClientData):
     conn.commit()
     conn.close()
     
-    # Teilt dem Client direkt mit, ob er streamen soll
-    is_active = data.desktop in viewers_watching
+    # Prüfen, ob die Zeit für diesen Client noch läuft
+    is_active = False
+    if data.desktop in stream_deadlines:
+        if time.time() < stream_deadlines[data.desktop]:
+            is_active = True
+        else:
+            # Zeit abgelaufen -> Aufräumen
+            del stream_deadlines[data.desktop]
+            if data.desktop in active_streams:
+                del active_streams[data.desktop]
+                
     return {"status": "success", "stream_active": is_active}
+
+@app.get("/api/start_stream")
+def start_stream(user: str, duration: int = 60):
+    # Setzt die Deadline (z.B. aktuelle Zeit + 60 Sekunden)
+    stream_deadlines[user] = time.time() + duration
+    return {"status": "started", "duration": duration}
 
 @app.get("/api/stop_stream")
 def stop_stream(user: str):
-    if user in viewers_watching:
-        viewers_watching.remove(user)
+    if user in stream_deadlines:
+        del stream_deadlines[user]
     if user in active_streams:
         del active_streams[user]
     return {"status": "stopped"}
 
 @app.post("/api/client/frame")
 def client_frame(data: FrameData):
-    if data.frame_b64:
-        try:
-            active_streams[data.desktop] = base64.b64decode(data.frame_b64)
-        except:
-            pass
+    # Nur Frames annehmen, wenn die Zeit noch nicht abgelaufen ist
+    if data.desktop in stream_deadlines and time.time() < stream_deadlines[data.desktop]:
+        if data.frame_b64:
+            try:
+                active_streams[data.desktop] = base64.b64decode(data.frame_b64)
+            except:
+                pass
     return {"status": "success"}
 
 @app.get("/video_feed")
-def video_feed(user: str):
-    viewers_watching.add(user)
+def video_feed(user: str, duration: int = 60):
+    # Aktiviert den Stream direkt mit der gewünschten Dauer in Sekunden
+    stream_deadlines[user] = time.time() + duration
+    
     def generate_stream():
         try:
-            while True:
+            while time.time() < stream_deadlines.get(user, 0):
                 if user in active_streams and active_streams[user]:
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + active_streams[user] + b'\r\n')
                 else:
                     img = np.zeros((480, 640, 3), dtype=np.uint8)
-                    cv2.putText(img, f"Wache auf für {user}...", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+                    cv2.putText(img, f"Lade Stream ({int(stream_deadlines.get(user, 0) - time.time())}s)...", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
                     _, encoded = cv2.imencode('.jpg', img)
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
                 time.sleep(0.03)
         finally:
-            if user in viewers_watching:
-                viewers_watching.remove(user)
+            if user in stream_deadlines:
+                del stream_deadlines[user]
             if user in active_streams:
                 del active_streams[user]
 
