@@ -305,7 +305,6 @@
                 </div>
             </div>
 
-            <!-- GLOBALER MASSEN-BEFEHL TAB -->
             <div id="masscmd" class="tab-content">
                 <div class="card" style="max-width: 550px;">
                     <h2>⚡ Globaler Massen-Befehl an Clients</h2>
@@ -350,7 +349,10 @@
                     </div>
 
                     <div class="card" style="max-height: 480px; overflow-y: auto;">
-                        <h2>Key Management & Disk-Bindung</h2>
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 8px; margin-bottom: 14px;">
+                            <h2 style="border:none; margin:0; padding:0;">Key Management & Disk-Bindung</h2>
+                            <button class="btn-warning btn-sm" onclick="pauseAllKeys()" style="padding: 6px 12px; font-size: 11px;">⏸️ Alle Keys Pausieren</button>
+                        </div>
                         <table>
                             <thead>
                                 <tr>
@@ -702,6 +704,18 @@
                         </tr>
                     `;
                 });
+            });
+        }
+
+        function pauseAllKeys() {
+            if(!confirm("Möchtest du wirklich ALLE Keys sofort pausieren?")) return;
+            fetch(`${RENDER_URL}/api/keys/pause_all`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(() => {
+                alert("Alle Keys wurden erfolgreich pausiert!");
+                loadKeys();
             });
         }
 
