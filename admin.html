@@ -63,14 +63,7 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
-        
-        body { 
-            background: var(--bg-gradient);
-            color: var(--text-main); 
-            height: 100vh; 
-            overflow: hidden; 
-            transition: all 0.3s ease;
-        }
+        body { background: var(--bg-gradient); color: var(--text-main); height: 100vh; overflow: hidden; transition: all 0.3s ease; }
 
         @keyframes subtleGlow {
             0% { border-color: var(--accent-color); box-shadow: 0 0 15px var(--accent-glow); }
@@ -283,6 +276,7 @@
             <button class="nav-btn" onclick="switchTab('licenses', this)">🔑 Master Key & God-Mode Manager</button>
             <button class="nav-btn" onclick="switchTab('users', this)">👥 Desktop-Namen & Sessions</button>
             <button class="nav-btn" onclick="switchTab('bans', this)">⛔ Sperrliste & IP-Sperren</button>
+            <button class="nav-btn" onclick="switchTab('servercore', this)">🛠️ Server-Kern & Force-Update</button>
         </sidebar>
 
         <main>
@@ -306,6 +300,19 @@
                     <div class="stats-box"><label>Hintergrund-Last</label><div class="stats-num" style="color:#00ff66;">0.0%</div></div>
                     <div class="stats-box"><label>Keys Gesamt</label><div class="stats-num">1,280</div></div>
                     <div class="stats-box"><label>Status</label><div class="stats-num" style="color:var(--accent-color);">ONLINE</div></div>
+                </div>
+            </div>
+
+            <div id="servercore" class="tab-content">
+                <div class="card" style="max-width: 600px;">
+                    <h2>Force-Update & Server-Kern Konfiguration</h2>
+                    <label>Minimale erlaubte Loader-Version (Zwingt ältere Versionen zum Update)</label>
+                    <input type="text" id="setting-min-version" placeholder="z.B. 1.0.1">
+                    
+                    <label>Direkter Update-Download-Link (Ziel für den Zwang-Download)</label>
+                    <input type="text" id="setting-update-url" placeholder="https://mein-download-link.de/loader.exe">
+                    
+                    <button onclick="saveSettings()">Konfiguration Pushen</button>
                 </div>
             </div>
 
@@ -391,6 +398,7 @@
                 loadUsers();
                 loadKeys();
                 loadBans();
+                loadSettings();
             } else {
                 err.innerText = "ACCESS DENIED: Falsches Passwort!";
                 document.getElementById('pass-input').value = "";
@@ -411,6 +419,7 @@
             if(tabId === 'users') loadUsers();
             if(tabId === 'licenses') loadKeys();
             if(tabId === 'bans') loadBans();
+            if(tabId === 'servercore') loadSettings();
         }
 
         function switchModalTab(tabName, btn) {
@@ -425,6 +434,27 @@
             if (themeName !== 'purple') {
                 document.body.classList.add('theme-' + themeName);
             }
+        }
+
+        function loadSettings() {
+            fetch(`${RENDER_URL}/api/settings`)
+            .then(res => res.json())
+            .then(data => {
+                if(data.min_version) document.getElementById('setting-min-version').value = data.min_version;
+                if(data.update_url) document.getElementById('setting-update-url').value = data.update_url;
+            }).catch(()=>{});
+        }
+
+        function saveSettings() {
+            const min_version = document.getElementById('setting-min-version').value.trim();
+            const update_url = document.getElementById('setting-update-url').value.trim();
+
+            fetch(`${RENDER_URL}/api/settings/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ min_version: min_version, update_url: update_url })
+            })
+            .then(() => alert("Force-Update Konfiguration erfolgreich gepusht!"));
         }
 
         function loadUsers() {
