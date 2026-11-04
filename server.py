@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 On-Demand Control", version="28.0")
+app = FastAPI(title="Assmar00 On-Demand Control", version="29.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -45,12 +45,6 @@ def init_db():
         )
     """)
     cursor.execute("""
-        CREATE TABLE IF NOT EXISTS global_settings (
-            key TEXT PRIMARY KEY,
-            value TEXT
-        )
-    """)
-    cursor.execute("""
         CREATE TABLE IF NOT EXISTS keys (
             key_code TEXT PRIMARY KEY,
             note TEXT,
@@ -58,11 +52,6 @@ def init_db():
             status TEXT DEFAULT 'Aktiv'
         )
     """)
-    
-    defaults = {"min_version": "1.0.0"}
-    for k, v in defaults.items():
-        cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES (?, ?)", (k, v))
-        
     cursor.execute("""
         INSERT OR IGNORE INTO keys (key_code, note, expiry, status)
         VALUES ('ASR-9812-PAUL', 'Master Standard Key', '2026-12-31', 'Aktiv')
@@ -91,6 +80,11 @@ class FrameData(BaseModel):
     desktop: str
     frame_b64: str
 
+class KeyData(BaseModel):
+    key_code: str
+    note: str
+    expiry: str
+
 @app.get("/", response_class=HTMLResponse)
 def serve_admin():
     try:
@@ -109,16 +103,41 @@ def get_users():
     conn.close()
     return [dict(row) for row in rows]
 
-@app.get("/api/stats")
-def get_stats():
+# --- KEY MANAGEMENT API ---
+@app.get("/api/keys")
+def get_keys():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM keys")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+@app.post("/api/keys/add")
+def add_key(data: KeyData):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT COUNT(*) FROM clients")
-    active_clients = cursor.fetchone()[0]
-    cursor.execute("SELECT COUNT(*) FROM keys")
-    total_keys = cursor.fetchone()[0]
+    try:
+        cursor.execute("INSERT OR REPLACE INTO keys (key_code, note, expiry, status) VALUES (?, ?, ?, 'Aktiv')", 
+                       (data.key_code, data.note, data.expiry))
+        conn.commit()
+    except Exception as e:
+        conn.close()
+        raise HTTPException(status_code=400, detail=str(e))
     conn.close()
-    return {"active_clients": active_clients, "total_keys": total_keys}
+    return {"status": "success"}
+
+@app.post("/api/keys/delete")
+def delete_key(data: dict):
+    key_code = data.get("key_code")
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM keys WHERE key_code = ?", (key_code,))
+    conn.commit()
+    conn.close()
+    return {"status": "deleted"}
+# --------------------------
 
 @app.post("/api/client/heartbeat")
 def client_heartbeat(data: ClientData):
@@ -180,7 +199,7 @@ def video_feed(user: str):
                     cv2.putText(img, f"Verbinde zu {user}...", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
                     _, encoded = cv2.imencode('.jpg', img)
                     yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\.bytearray' + bytearray(encoded) + b'\r\n')
+                           b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
                 time.sleep(0.03)
         finally:
             if user in viewers_watching:
@@ -192,7 +211,15 @@ def video_feed(user: str):
 
 @app.post("/verify")
 def verify_license_endpoint(data: dict):
-    return {"success": True, "message": "Key validiert", "expiry": "2026-12-31"}
+    key = data.get("key", "")
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM keys WHERE key_code = ? AND status = 'Aktiv'", (key,))
+    row = cursor.fetchone()
+    conn.close()
+    if row:
+        return {"success": True, "message": "Key validiert", "expiry": row[2]}
+    return {"success": False, "message": "Ungültiger Key"}
 
 if __name__ == "__main__":
     import uvicorn
