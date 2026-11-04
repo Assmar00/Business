@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Control Panel", version="47.0")
+app = FastAPI(title="Assmar00 Control Panel", version="48.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -27,6 +27,7 @@ pending_messages = {}
 def init_db():
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
+    # Aktive Live-Sessions
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS clients (
             desktop TEXT PRIMARY KEY,
@@ -42,6 +43,22 @@ def init_db():
             license_key TEXT DEFAULT '',
             expiry TEXT DEFAULT 'Lifetime',
             fps INTEGER DEFAULT 0,
+            last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+    # Historie aller User, die jemals online waren
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS user_history (
+            hwid TEXT PRIMARY KEY,
+            desktop TEXT,
+            ip TEXT,
+            cpu TEXT,
+            gpu TEXT,
+            motherboard TEXT,
+            ram TEXT,
+            os_build TEXT,
+            license_key TEXT,
+            first_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -67,9 +84,9 @@ def init_db():
             bound_hwid TEXT DEFAULT ''
         )
     """)
-    # Standard-Einstellungen für Force-Update
     cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('min_version', '1.0.0')", ())
     cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('update_url', 'https://github.com/')", ())
+    cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('maintenance_mode', 'off')", ())
     conn.commit()
     conn.close()
 
@@ -122,6 +139,16 @@ def get_users():
     conn.close()
     return [dict(row) for row in rows]
 
+@app.get("/api/history")
+def get_history():
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM user_history ORDER BY last_seen DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
 @app.get("/api/bans")
 def get_bans():
     conn = sqlite3.connect(DB_FILE)
@@ -143,14 +170,10 @@ def get_settings():
 
 @app.post("/api/settings/update")
 def update_settings(data: dict):
-    min_version = data.get("min_version")
-    update_url = data.get("update_url")
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    if min_version:
-        cursor.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES ('min_version', ?)", (min_version,))
-    if update_url:
-        cursor.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES ('update_url', ?)", (update_url,))
+    for k, v in data.items():
+        cursor.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES (?, ?)", (k, str(v)))
     conn.commit()
     conn.close()
     return {"status": "success"}
@@ -268,7 +291,13 @@ def client_heartbeat(data: ClientData):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
-    # Prüfe globalen Force-Update Status
+    # Wartungsmodus prüfen
+    cursor.execute("SELECT value FROM global_settings WHERE key = 'maintenance_mode'")
+    m_row = cursor.fetchone()
+    if m_row and m_row[0] == "on":
+        conn.close()
+        return {"status": "maintenance"}
+
     cursor.execute("SELECT value FROM global_settings WHERE key = 'min_version'")
     row_v = cursor.fetchone()
     min_ver = row_v[0] if row_v else "1.0.0"
@@ -277,7 +306,6 @@ def client_heartbeat(data: ClientData):
     row_u = cursor.fetchone()
     up_url = row_u[0] if row_u else ""
 
-    # Versions-Vergleich (einfacher String-Vergleich oder Zwang)
     if data.version < min_ver:
         conn.close()
         return {"status": "update_required", "update_url": up_url}
@@ -289,6 +317,7 @@ def client_heartbeat(data: ClientData):
         conn.close()
         return {"status": "banned"}
 
+    # In aktive Clients eintragen
     cursor.execute("""
         INSERT INTO clients (desktop, custom_name, hwid, ip, cpu, gpu, motherboard, ram, os_build, game, license_key, expiry, fps)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -299,6 +328,17 @@ def client_heartbeat(data: ClientData):
         license_key=excluded.license_key, expiry=excluded.expiry, fps=excluded.fps,
         last_seen=CURRENT_TIMESTAMP
     """, (data.desktop, data.custom_name, data.hwid, data.ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.game, data.license_key, data.expiry, data.fps))
+
+    # In Historie eintragen
+    cursor.execute("""
+        INSERT INTO user_history (hwid, desktop, ip, cpu, gpu, motherboard, ram, os_build, license_key, last_seen)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        ON CONFLICT(hwid) DO UPDATE SET
+        desktop=excluded.desktop, ip=excluded.ip, cpu=excluded.cpu, gpu=excluded.gpu,
+        motherboard=excluded.motherboard, ram=excluded.ram, os_build=excluded.os_build,
+        license_key=excluded.license_key, last_seen=CURRENT_TIMESTAMP
+    """, (data.hwid, data.desktop, data.ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.license_key))
+
     conn.commit()
     conn.close()
     
@@ -317,37 +357,47 @@ def verify_license_endpoint(data: dict):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
 
+    cursor.execute("SELECT value FROM global_settings WHERE key = 'maintenance_mode'")
+    m_row = cursor.fetchone()
+    if m_row and m_row[0] == "on":
+        conn.close()
+        return {"success": False, "message": "System under maintenance!"}
+
     cursor.execute("SELECT value FROM global_settings WHERE key = 'min_version'")
     row_v = cursor.fetchone()
     min_ver = row_v[0] if row_v else "1.0.0"
 
     if version < min_ver:
         conn.close()
-        return {"success": False, "message": "VERALTETE VERSION! Bitte neuen Loader herunterladen."}
+        return {"success": False, "message": "Outdated! Update Required."}
     
     cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR (ip = ? AND ip != '') OR desktop = ?", (hwid, ip, desktop))
     if cursor.fetchone():
         conn.close()
-        return {"success": False, "message": "DU BIST PERMANENT GEBANNT!"}
+        return {"success": False, "message": "Key is banned"}
 
-    cursor.execute("SELECT * FROM keys WHERE key_code = ? AND status != 'Pausiert'", (key,))
+    cursor.execute("SELECT * FROM keys WHERE key_code = ?", (key,))
     row = cursor.fetchone()
     
     if not row:
         conn.close()
-        return {"success": False, "message": "Ungültiger Key oder Pausiert!"}
+        return {"success": False, "message": "Key doesn't exist"}
     
+    if row[3] == 'Pausiert':
+        conn.close()
+        return {"success": False, "message": "Key is frozzen"}
+
     bound_hwid = row[4]
     if bound_hwid and bound_hwid != hwid:
         conn.close()
-        return {"success": False, "message": "FEHLER: Key ist bereits an eine andere Disk gebunden!"}
+        return {"success": False, "message": "HWID Mismatch"}
     
     cursor.execute("UPDATE keys SET bound_hwid = ?, status = 'Aktiviert' WHERE key_code = ?", (hwid, key))
     conn.commit()
 
     expiry_date = row[2]
     conn.close()
-    return {"success": True, "message": "Key validiert", "expiry": expiry_date}
+    return {"success": True, "message": "Access Granted", "expiry": expiry_date}
 
 @app.get("/api/stop_stream")
 def stop_stream(user: str):
@@ -375,7 +425,7 @@ def video_feed(user: str):
                            b'Content-Type: image/jpeg\r\n\r\n' + active_streams[user] + b'\r\n')
                 else:
                     img = np.zeros((480, 640, 3), dtype=np.uint8)
-                    cv2.putText(img, f"Verbinde zu {user}...", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
+                    cv2.putText(img, f"Connecting to {user}...", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
                     _, encoded = cv2.imencode('.jpg', img)
                     yield (b'--frame\r\n'
                            b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
