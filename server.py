@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Control Panel", version="46.0")
+app = FastAPI(title="Assmar00 Control Panel", version="47.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -67,11 +67,9 @@ def init_db():
             bound_hwid TEXT DEFAULT ''
         )
     """)
-    cursor.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES ('latest_version', '1.0.1')", ())
-    cursor.execute("""
-        INSERT OR IGNORE INTO keys (key_code, note, expiry, status, bound_hwid)
-        VALUES ('ASR-9812-PAUL', 'Master Standard Key', '2026-12-31', 'Unbenutzt', '')
-    """)
+    # Standard-Einstellungen für Force-Update
+    cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('min_version', '1.0.0')", ())
+    cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('update_url', 'https://github.com/')", ())
     conn.commit()
     conn.close()
 
@@ -91,6 +89,7 @@ class ClientData(BaseModel):
     license_key: str = ""
     expiry: str = "Lifetime"
     fps: int = 0
+    version: str = "1.0.0"
 
 class FrameData(BaseModel):
     desktop: str
@@ -132,6 +131,29 @@ def get_bans():
     rows = cursor.fetchall()
     conn.close()
     return [dict(row) for row in rows]
+
+@app.get("/api/settings")
+def get_settings():
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT key, value FROM global_settings")
+    rows = cursor.fetchall()
+    conn.close()
+    return {row[0]: row[1] for row in rows}
+
+@app.post("/api/settings/update")
+def update_settings(data: dict):
+    min_version = data.get("min_version")
+    update_url = data.get("update_url")
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    if min_version:
+        cursor.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES ('min_version', ?)", (min_version,))
+    if update_url:
+        cursor.execute("INSERT OR REPLACE INTO global_settings (key, value) VALUES ('update_url', ?)", (update_url,))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
 
 @app.post("/api/admin/ban_user")
 def ban_user(data: dict):
@@ -246,6 +268,20 @@ def client_heartbeat(data: ClientData):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
+    # Prüfe globalen Force-Update Status
+    cursor.execute("SELECT value FROM global_settings WHERE key = 'min_version'")
+    row_v = cursor.fetchone()
+    min_ver = row_v[0] if row_v else "1.0.0"
+
+    cursor.execute("SELECT value FROM global_settings WHERE key = 'update_url'")
+    row_u = cursor.fetchone()
+    up_url = row_u[0] if row_u else ""
+
+    # Versions-Vergleich (einfacher String-Vergleich oder Zwang)
+    if data.version < min_ver:
+        conn.close()
+        return {"status": "update_required", "update_url": up_url}
+
     cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR (ip = ? AND ip != '') OR desktop = ?", (data.hwid, data.ip, data.desktop))
     if cursor.fetchone():
         cursor.execute("DELETE FROM clients WHERE desktop = ?", (data.desktop,))
@@ -276,9 +312,18 @@ def verify_license_endpoint(data: dict):
     ip = data.get("ip", "")
     key = data.get("key", "")
     desktop = data.get("desktop", "")
+    version = data.get("version", "1.0.0")
 
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
+
+    cursor.execute("SELECT value FROM global_settings WHERE key = 'min_version'")
+    row_v = cursor.fetchone()
+    min_ver = row_v[0] if row_v else "1.0.0"
+
+    if version < min_ver:
+        conn.close()
+        return {"success": False, "message": "VERALTETE VERSION! Bitte neuen Loader herunterladen."}
     
     cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR (ip = ? AND ip != '') OR desktop = ?", (hwid, ip, desktop))
     if cursor.fetchone():
