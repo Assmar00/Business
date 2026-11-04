@@ -239,7 +239,7 @@
 
             <div id="modal-tab-info" class="modal-tab-pane active">
                 <div class="msinfo-grid">
-                    <div class="msinfo-item"><span>Disk Hardware ID (HWID Hash)</span><strong id="m-hwid">--</strong></div>
+                    <div class="msinfo-item"><span>Disk Hardware ID (UniqueId)</span><strong id="m-hwid">--</strong></div>
                     <div class="msinfo-item"><span>IP Adresse & Standort</span><strong id="m-ip">--</strong></div>
                     <div class="msinfo-item"><span>Prozessor (CPU)</span><strong id="m-cpu">--</strong></div>
                     <div class="msinfo-item"><span>Grafikkarte (GPU)</span><strong id="m-gpu">--</strong></div>
@@ -342,7 +342,7 @@
                         <thead>
                             <tr>
                                 <th>Windows Desktop-Name</th>
-                                <th>Disk HWID Hash</th>
+                                <th>Disk HWID</th>
                                 <th>IP-Adresse</th>
                                 <th>Aktives Game</th>
                                 <th>Aktion</th>
@@ -357,7 +357,7 @@
                 <div class="card">
                     <h2>Hardware & IP Sperrliste (Manuell Bannen)</h2>
                     <label>HWID oder IP-Adresse eingeben</label>
-                    <input type="text" id="manual-ban-input" placeholder="z.B. 192.168.1.50 oder Disk-HWID-Hash">
+                    <input type="text" id="manual-ban-input" placeholder="z.B. 192.168.1.50 oder Disk-HWID">
                     <button class="btn-danger" onclick="manualBan()">Permanent Sperren</button>
                 </div>
 
@@ -366,7 +366,7 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Gebannte Disk-HWID / Hash</th>
+                                <th>Gebannte Disk-HWID</th>
                                 <th>Zugehörige IP</th>
                                 <th>Aktion</th>
                             </tr>
@@ -379,7 +379,6 @@
     </div>
 
     <script>
-        // WIEDER AUF RENDER URL EINGESTELLT
         const RENDER_URL = "https://ai-bot-1-zu9n.onrender.com";
         let currentStreamUser = "";
 
@@ -440,7 +439,7 @@
                     tbody.innerHTML += `
                         <tr class="user-row" onclick="openUserModal('${u.desktop}', '${u.ip}', '${u.cpu}', '${u.gpu}', '${u.motherboard}', '${u.ram}', '${u.os_build}', '${u.game}', '${u.license_key}', '${u.expiry}', '${u.hwid}')">
                             <td><strong>${u.desktop}</strong></td>
-                            <td>${u.hwid ? u.hwid.substring(0, 16) + '...' : 'Disk-OK'}</td>
+                            <td>${u.hwid ? u.hwid : 'Disk-OK'}</td>
                             <td style="color:#00f3ff;">${u.ip}</td>
                             <td style="color:var(--accent-color);">${u.game}</td>
                             <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;">Inspect & Live</button></td>
@@ -453,7 +452,7 @@
         function openUserModal(name, ip, cpu, gpu, mobo, ram, os, game, key, expiry, hwid) {
             currentStreamUser = name;
             document.getElementById('m-user-title').innerText = "SYSTEM INSPECTOR & LIVE VIEW // " + name;
-            document.getElementById('m-hwid').innerText = hwid || "Hash Verifiziert";
+            document.getElementById('m-hwid').innerText = hwid || "Verifiziert";
             document.getElementById('m-ip').innerText = ip || "127.0.0.1";
             document.getElementById('m-cpu').innerText = cpu || "CPU Info";
             document.getElementById('m-gpu').innerText = gpu || "GPU Info";
@@ -564,7 +563,7 @@
                 tbody.innerHTML = "";
                 keys.forEach(k => {
                     const statusColor = k.status === 'Unbenutzt' ? '#ffaa00' : '#00ff66';
-                    const boundInfo = k.bound_hwid ? `<br><span style="font-size:9px; color:#00f3ff;">Disk: ${k.bound_hwid.substring(0, 16)}...</span>` : `<br><span style="font-size:9px; color:#777;">Noch ungebunden</span>`;
+                    const boundInfo = k.bound_hwid ? `<br><span style="font-size:9px; color:#00f3ff;">Disk: ${k.bound_hwid}</span>` : `<br><span style="font-size:9px; color:#777;">Noch ungebunden</span>`;
                     tbody.innerHTML += `
                         <tr>
                             <td><strong style="color:var(--accent-color);">${k.key_code}</strong><br><span style="font-size:9px; color:#777;">${k.note}</span>${boundInfo}</td>
