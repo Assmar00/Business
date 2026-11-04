@@ -9,7 +9,7 @@ from pydantic import BaseModel
 import base64
 import time
 
-app = FastAPI(title="Assmar00 Control Panel", version="43.0")
+app = FastAPI(title="Assmar00 Control Panel", version="45.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -144,7 +144,6 @@ def ban_user(data: dict):
     cursor = conn.cursor()
 
     if desktop:
-        # Holt exakt die Disk-HWID und IP des Clients aus der Tabelle und bannt beides
         cursor.execute("SELECT hwid, ip FROM clients WHERE desktop = ?", (desktop,))
         row = cursor.fetchone()
         if row:
@@ -247,7 +246,7 @@ def client_heartbeat(data: ClientData):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
-    cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR ip = ? OR desktop = ?", (data.hwid, data.ip, data.desktop))
+    cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR (ip = ? AND ip != '') OR desktop = ?", (data.hwid, data.ip, data.desktop))
     if cursor.fetchone():
         cursor.execute("DELETE FROM clients WHERE desktop = ?", (data.desktop,))
         conn.commit()
@@ -281,7 +280,6 @@ def verify_license_endpoint(data: dict):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
-    # Strenger Bann-Check
     cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR (ip = ? AND ip != '') OR desktop = ?", (hwid, ip, desktop))
     if cursor.fetchone():
         conn.close()
@@ -299,7 +297,6 @@ def verify_license_endpoint(data: dict):
         conn.close()
         return {"success": False, "message": "FEHLER: Key ist bereits an eine andere Disk gebunden!"}
     
-    # Setzt Status beim Einlösen fest auf 'Aktiviert' und speichert die Disk-HWID
     cursor.execute("UPDATE keys SET bound_hwid = ?, status = 'Aktiviert' WHERE key_code = ?", (hwid, key))
     conn.commit()
 
@@ -345,4 +342,4 @@ def video_feed(user: str):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("server:app", host="0.0.0.0", port=8000)
