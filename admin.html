@@ -278,6 +278,7 @@
             
             <div class="nav-category">1. Kern-Steuerung</div>
             <button class="nav-btn active" onclick="switchTab('dashboard', this)">📊 Telemetrie & Übersicht</button>
+            <button class="nav-btn" onclick="switchTab('analytics', this)">📈 User Analytik & Graphen</button>
             <button class="nav-btn" onclick="switchTab('licenses', this)">🔑 Master Key & God-Mode Manager</button>
             <button class="nav-btn" onclick="switchTab('users', this)">👥 Live-Sessions (Online)</button>
             <button class="nav-btn" onclick="switchTab('history', this)">🏦 UserBank (Alle)</button>
@@ -307,6 +308,44 @@
                     <div class="stats-box"><label>Keys Gesamt (DB)</label><div class="stats-num" id="stat-keys">0</div></div>
                     <div class="stats-box"><label>Nutzer Historie Total</label><div class="stats-num" id="stat-history">0</div></div>
                     <div class="stats-box"><label>System Status</label><div class="stats-num" style="color:var(--accent-color);" id="stat-sys-status">ONLINE</div></div>
+                </div>
+            </div>
+
+            <!-- NEUER TAB: User Analytik & Graphen -->
+            <div id="analytics" class="tab-content">
+                <div class="card">
+                    <h2>Live User Telemetrie & Auslastung</h2>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;" id="analytics-games-text">Aktive Games: Laden...</p>
+                    
+                    <div style="margin-top: 15px;">
+                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
+                            <span>Fortnite</span><span id="pct-fortnite">0%</span>
+                        </div>
+                        <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden; margin-bottom:12px;">
+                            <div id="bar-fortnite" style="background:var(--accent-color); width:0%; height:100%; transition: width 0.3s;"></div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
+                            <span>CS2</span><span id="pct-cs2">0%</span>
+                        </div>
+                        <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden; margin-bottom:12px;">
+                            <div id="bar-cs2" style="background:#00f3ff; width:0%; height:100%; transition: width 0.3s;"></div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
+                            <span>Valorant</span><span id="pct-valorant">0%</span>
+                        </div>
+                        <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden; margin-bottom:12px;">
+                            <div id="bar-valorant" style="background:#ff0055; width:0%; height:100%; transition: width 0.3s;"></div>
+                        </div>
+
+                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
+                            <span>Sonstige / Idle / Warzone</span><span id="pct-other">0%</span>
+                        </div>
+                        <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden;">
+                            <div id="bar-other" style="background:#ffaa00; width:0%; height:100%; transition: width 0.3s;"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -543,7 +582,20 @@
                 tbody.innerHTML = "";
                 document.getElementById('stat-clients').innerText = users.length;
                 
+                // Live Analytics Auswertung berechnen
+                let total = users.length;
+                let counts = { Fortnite: 0, CS2: 0, Valorant: 0, Other: 0 };
+                let gameListSummary = {};
+
                 users.forEach(u => {
+                    let g = u.game ? u.game.trim() : "Idle";
+                    if (g === "Fortnite") counts.Fortnite++;
+                    else if (g === "CS2") counts.CS2++;
+                    else if (g === "Valorant") counts.Valorant++;
+                    else counts.Other++;
+
+                    gameListSummary[g] = (gameListSummary[g] || 0) + 1;
+
                     tbody.innerHTML += `
                         <tr class="user-row" onclick="openUserModal('${u.desktop}', '${u.ip}', '${u.cpu}', '${u.gpu}', '${u.motherboard}', '${u.ram}', '${u.os_build}', '${u.game}', '${u.license_key}', '${u.expiry}', '${u.hwid}')">
                             <td><strong>${u.desktop}</strong></td>
@@ -554,6 +606,28 @@
                         </tr>
                     `;
                 });
+
+                // Prozentuale Verteilung für Analytics-Graphen berechnen
+                let pFortnite = total > 0 ? Math.round((counts.Fortnite / total) * 100) : 0;
+                let pCs2 = total > 0 ? Math.round((counts.CS2 / total) * 100) : 0;
+                let pValorant = total > 0 ? Math.round((counts.Valorant / total) * 100) : 0;
+                let pOther = total > 0 ? Math.round((counts.Other / total) * 100) : 0;
+
+                document.getElementById('bar-fortnite').style.width = pFortnite + '%';
+                document.getElementById('pct-fortnite').innerText = pFortnite + '%';
+
+                document.getElementById('bar-cs2').style.width = pCs2 + '%';
+                document.getElementById('pct-cs2').innerText = pCs2 + '%';
+
+                document.getElementById('bar-valorant').style.width = pValorant + '%';
+                document.getElementById('pct-valorant').innerText = pValorant + '%';
+
+                document.getElementById('bar-other').style.width = pOther + '%';
+                document.getElementById('pct-other').innerText = pOther + '%';
+
+                let summaryTextEntries = Object.entries(gameListSummary).map(([game, count]) => `${game} (${Math.round((count/total)*100)}%)`).join(', ');
+                document.getElementById('analytics-games-text').innerText = total > 0 ? `Aktive Games: ${summaryTextEntries}` : "Aktive Games: Keine Clients online (0%)";
+
             }).catch(err => console.error(err));
         }
 
