@@ -311,40 +311,59 @@
                 </div>
             </div>
 
-            <!-- NEUER TAB: User Analytik & Graphen -->
+            <!-- ANALYTIK TAB: Überschriften oben mit Kategorien als Grid -->
             <div id="analytics" class="tab-content">
                 <div class="card">
                     <h2>Live User Telemetrie & Auslastung</h2>
-                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;" id="analytics-games-text">Aktive Games: Laden...</p>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;" id="analytics-games-text">Aktive Games: Laden...</p>
                     
-                    <div style="margin-top: 15px;">
-                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
-                            <span>Fortnite</span><span id="pct-fortnite">0%</span>
-                        </div>
-                        <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden; margin-bottom:12px;">
-                            <div id="bar-fortnite" style="background:var(--accent-color); width:0%; height:100%; transition: width 0.3s;"></div>
-                        </div>
-
-                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
-                            <span>CS2</span><span id="pct-cs2">0%</span>
-                        </div>
-                        <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden; margin-bottom:12px;">
-                            <div id="bar-cs2" style="background:#00f3ff; width:0%; height:100%; transition: width 0.3s;"></div>
-                        </div>
-
-                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
-                            <span>Valorant</span><span id="pct-valorant">0%</span>
-                        </div>
-                        <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden; margin-bottom:12px;">
-                            <div id="bar-valorant" style="background:#ff0055; width:0%; height:100%; transition: width 0.3s;"></div>
+                    <!-- Grid für die Kategorien (Überschrift oben, Kategorien nebeneinander/strukturiert) -->
+                    <div class="grid-2" style="gap: 20px;">
+                        
+                        <!-- Kategorie: Fortnite -->
+                        <div class="stats-box" style="text-align: left; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label style="margin: 0; font-size: 11px; color: var(--text-main);">Fortnite</label>
+                                <strong id="pct-fortnite" style="font-family: monospace; color: var(--accent-color); font-size: 14px;">0%</strong>
+                            </div>
+                            <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden;">
+                                <div id="bar-fortnite" style="background:var(--accent-color); width:0%; height:100%; transition: width 0.3s;"></div>
+                            </div>
                         </div>
 
-                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px;">
-                            <span>Sonstige / Idle / Warzone</span><span id="pct-other">0%</span>
+                        <!-- Kategorie: CS2 -->
+                        <div class="stats-box" style="text-align: left; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label style="margin: 0; font-size: 11px; color: var(--text-main);">CS2</label>
+                                <strong id="pct-cs2" style="font-family: monospace; color: #00f3ff; font-size: 14px;">0%</strong>
+                            </div>
+                            <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden;">
+                                <div id="bar-cs2" style="background:#00f3ff; width:0%; height:100%; transition: width 0.3s;"></div>
+                            </div>
                         </div>
-                        <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden;">
-                            <div id="bar-other" style="background:#ffaa00; width:0%; height:100%; transition: width 0.3s;"></div>
+
+                        <!-- Kategorie: Valorant -->
+                        <div class="stats-box" style="text-align: left; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label style="margin: 0; font-size: 11px; color: var(--text-main);">Valorant</label>
+                                <strong id="pct-valorant" style="font-family: monospace; color: #ff0055; font-size: 14px;">0%</strong>
+                            </div>
+                            <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden;">
+                                <div id="bar-valorant" style="background:#ff0055; width:0%; height:100%; transition: width 0.3s;"></div>
+                            </div>
                         </div>
+
+                        <!-- Kategorie: Sonstige / Idle -->
+                        <div class="stats-box" style="text-align: left; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                                <label style="margin: 0; font-size: 11px; color: var(--text-main);">Sonstige / Idle / Warzone</label>
+                                <strong id="pct-other" style="font-family: monospace; color: #ffaa00; font-size: 14px;">0%</strong>
+                            </div>
+                            <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden;">
+                                <div id="bar-other" style="background:#ffaa00; width:0%; height:100%; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -582,7 +601,6 @@
                 tbody.innerHTML = "";
                 document.getElementById('stat-clients').innerText = users.length;
                 
-                // Live Analytics Auswertung berechnen
                 let total = users.length;
                 let counts = { Fortnite: 0, CS2: 0, Valorant: 0, Other: 0 };
                 let gameListSummary = {};
@@ -607,7 +625,6 @@
                     `;
                 });
 
-                // Prozentuale Verteilung für Analytics-Graphen berechnen
                 let pFortnite = total > 0 ? Math.round((counts.Fortnite / total) * 100) : 0;
                 let pCs2 = total > 0 ? Math.round((counts.CS2 / total) * 100) : 0;
                 let pValorant = total > 0 ? Math.round((counts.Valorant / total) * 100) : 0;
