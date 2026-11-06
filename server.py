@@ -1,15 +1,12 @@
 import os
 import sqlite3
-import cv2
-import numpy as np
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-import base64
-import time
+from typing import Dict, Any, Optional
 
-app = FastAPI(title="Assmar00 Control Panel", version="52.0")
+app = FastAPI(title="Assmar00 Control Panel", version="54.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -20,10 +17,9 @@ app.add_middleware(
 )
 
 DB_FILE = "database.db"
-active_streams = {}
-viewers_watching = set()
-pending_messages = {}
-global_mass_command = None
+pending_messages: Dict[str, str] = {}
+pending_user_commands: Dict[str, Dict[str, Any]] = {}
+global_mass_command: Optional[str] = None
 
 def init_db():
     conn = sqlite3.connect(DB_FILE)
@@ -107,10 +103,6 @@ class ClientData(BaseModel):
     fps: int = 0
     version: str = "1.0.0"
 
-class FrameData(BaseModel):
-    desktop: str
-    frame_b64: str
-
 class KeyData(BaseModel):
     key_code: str
     note: str
@@ -119,6 +111,11 @@ class KeyData(BaseModel):
 class MessageData(BaseModel):
     desktop: str
     message: str
+
+class UserCommandData(BaseModel):
+    desktop: str
+    command: str
+    duration: int = 30
 
 @app.get("/", response_class=HTMLResponse)
 def serve_admin():
@@ -133,7 +130,7 @@ def get_users():
     conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM clients WHERE (julianday('now') - julianday(last_seen)) * 86400 > 6")
+    cursor.execute("DELETE FROM clients WHERE (julianday('now') - julianday(last_seen)) * 86400 > 15")
     conn.commit()
 
     cursor.execute("SELECT * FROM clients")
@@ -186,6 +183,14 @@ def post_mass_command(data: dict):
     global_mass_command = data.get("command")
     return {"status": "success", "command": global_mass_command}
 
+@app.post("/api/admin/send_command")
+def post_send_command(data: UserCommandData):
+    pending_user_commands[data.desktop] = {
+        "command": data.command,
+        "duration": data.duration
+    }
+    return {"status": "success"}
+
 @app.post("/api/admin/ban_user")
 def ban_user(data: dict):
     desktop = data.get("desktop")
@@ -213,10 +218,6 @@ def ban_user(data: dict):
 
     conn.commit()
     conn.close()
-
-    if desktop in viewers_watching: viewers_watching.remove(desktop)
-    if desktop in active_streams: del active_streams[desktop]
-
     return {"status": "banned"}
 
 @app.post("/api/admin/unban_user")
@@ -358,16 +359,17 @@ def client_heartbeat(data: ClientData):
     conn.close()
     
     alert_msg = pending_messages.pop(data.desktop, None)
-    is_active = data.desktop in viewers_watching
+    user_cmd_obj = pending_user_commands.pop(data.desktop, None)
     
     current_cmd = global_mass_command
     global_mass_command = None
 
     return {
         "status": "success", 
-        "stream_active": is_active, 
         "alert_message": alert_msg, 
-        "mass_command": current_cmd
+        "mass_command": current_cmd,
+        "user_command": user_cmd_obj.get("command") if user_cmd_obj else None,
+        "user_command_duration": user_cmd_obj.get("duration", 30) if user_cmd_obj else 30
     }
 
 @app.post("/verify")
@@ -422,42 +424,6 @@ def verify_license_endpoint(data: dict):
     expiry_date = row[2]
     conn.close()
     return {"success": True, "message": "Access Granted", "expiry": expiry_date}
-
-@app.get("/api/stop_stream")
-def stop_stream(user: str):
-    if user in viewers_watching: viewers_watching.remove(user)
-    if user in active_streams: del active_streams[user]
-    return {"status": "stopped"}
-
-@app.post("/api/client/frame")
-def client_frame(data: FrameData):
-    if data.desktop in viewers_watching and data.frame_b64:
-        try:
-            active_streams[data.desktop] = base64.b64decode(data.frame_b64)
-        except:
-            pass
-    return {"status": "success"}
-
-@app.get("/video_feed")
-def video_feed(user: str):
-    viewers_watching.add(user)
-    def generate_stream():
-        try:
-            while user in viewers_watching:
-                if user in active_streams and active_streams[user]:
-                    yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\n' + active_streams[user] + b'\r\n')
-                else:
-                    img = np.zeros((480, 640, 3), dtype=np.uint8)
-                    cv2.putText(img, f"Connecting to {user}...", (20, 240), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 2)
-                    _, encoded = cv2.imencode('.jpg', img)
-                    yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\n' + bytearray(encoded) + b'\r\n')
-                time.sleep(0.03)
-        finally:
-            if user in viewers_watching: viewers_watching.remove(user)
-            if user in active_streams: del active_streams[user]
-    return StreamingResponse(generate_stream(), media_type="multipart/x-mixed-replace; boundary=frame")
 
 if __name__ == "__main__":
     import uvicorn
