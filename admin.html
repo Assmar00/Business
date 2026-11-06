@@ -311,53 +311,52 @@
                 </div>
             </div>
 
-            <!-- ANALYTIK TAB: Überschriften oben mit Kategorien als Grid -->
+            <!-- ANALYTIK TAB: Kategorien und Graphen übersichtlich in Kacheln -->
             <div id="analytics" class="tab-content">
                 <div class="card">
                     <h2>Live User Telemetrie & Auslastung</h2>
                     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;" id="analytics-games-text">Aktive Games: Laden...</p>
                     
-                    <!-- Grid für die Kategorien (Überschrift oben, Kategorien nebeneinander/strukturiert) -->
-                    <div class="grid-2" style="gap: 20px;">
+                    <div class="grid-2" style="gap: 16px;">
                         
-                        <!-- Kategorie: Fortnite -->
-                        <div class="stats-box" style="text-align: left; padding: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <label style="margin: 0; font-size: 11px; color: var(--text-main);">Fortnite</label>
-                                <strong id="pct-fortnite" style="font-family: monospace; color: var(--accent-color); font-size: 14px;">0%</strong>
+                        <!-- Fortnite Kategorie -->
+                        <div class="stats-box" style="text-align: left; padding: 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-size: 12px; font-weight: bold; color: var(--text-main); text-transform: uppercase;">🎮 Fortnite</span>
+                                <span id="pct-fortnite" style="font-family: monospace; color: var(--accent-color); font-size: 14px; font-weight: bold;">0%</span>
                             </div>
                             <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden;">
                                 <div id="bar-fortnite" style="background:var(--accent-color); width:0%; height:100%; transition: width 0.3s;"></div>
                             </div>
                         </div>
 
-                        <!-- Kategorie: CS2 -->
-                        <div class="stats-box" style="text-align: left; padding: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <label style="margin: 0; font-size: 11px; color: var(--text-main);">CS2</label>
-                                <strong id="pct-cs2" style="font-family: monospace; color: #00f3ff; font-size: 14px;">0%</strong>
+                        <!-- CS2 Kategorie -->
+                        <div class="stats-box" style="text-align: left; padding: 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-size: 12px; font-weight: bold; color: var(--text-main); text-transform: uppercase;">🎯 CS2</span>
+                                <span id="pct-cs2" style="font-family: monospace; color: #00f3ff; font-size: 14px; font-weight: bold;">0%</span>
                             </div>
                             <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden;">
                                 <div id="bar-cs2" style="background:#00f3ff; width:0%; height:100%; transition: width 0.3s;"></div>
                             </div>
                         </div>
 
-                        <!-- Kategorie: Valorant -->
-                        <div class="stats-box" style="text-align: left; padding: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <label style="margin: 0; font-size: 11px; color: var(--text-main);">Valorant</label>
-                                <strong id="pct-valorant" style="font-family: monospace; color: #ff0055; font-size: 14px;">0%</strong>
+                        <!-- Valorant Kategorie -->
+                        <div class="stats-box" style="text-align: left; padding: 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-size: 12px; font-weight: bold; color: var(--text-main); text-transform: uppercase;">⚡ Valorant</span>
+                                <span id="pct-valorant" style="font-family: monospace; color: #ff0055; font-size: 14px; font-weight: bold;">0%</span>
                             </div>
                             <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden;">
                                 <div id="bar-valorant" style="background:#ff0055; width:0%; height:100%; transition: width 0.3s;"></div>
                             </div>
                         </div>
 
-                        <!-- Kategorie: Sonstige / Idle -->
-                        <div class="stats-box" style="text-align: left; padding: 16px;">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                                <label style="margin: 0; font-size: 11px; color: var(--text-main);">Sonstige / Idle / Warzone</label>
-                                <strong id="pct-other" style="font-family: monospace; color: #ffaa00; font-size: 14px;">0%</strong>
+                        <!-- Sonstige / Idle Kategorie -->
+                        <div class="stats-box" style="text-align: left; padding: 18px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                <span style="font-size: 12px; font-weight: bold; color: var(--text-main); text-transform: uppercase;">🌐 Sonstige / Idle / Warzone</span>
+                                <span id="pct-other" style="font-family: monospace; color: #ffaa00; font-size: 14px; font-weight: bold;">0%</span>
                             </div>
                             <div style="background:var(--input-bg); border-radius:4px; height:8px; overflow:hidden;">
                                 <div id="bar-other" style="background:#ffaa00; width:0%; height:100%; transition: width 0.3s;"></div>
