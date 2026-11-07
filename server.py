@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 
-app = FastAPI(title="Assmar00 Control Panel", version="54.0")
+app = FastAPI(title="Assmar00 Control Panel", version="55.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -70,22 +70,55 @@ def init_db():
             value TEXT
         )
     """)
+    # HIER ERWEITERT: Spalten für die Feature-Switches pro Key
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS keys (
             key_code TEXT PRIMARY KEY,
             note TEXT,
             expiry TEXT,
             status TEXT DEFAULT 'Unbenutzt',
-            bound_hwid TEXT DEFAULT ''
+            bound_hwid TEXT DEFAULT '',
+            allow_aimbot INTEGER DEFAULT 1,
+            allow_recoil INTEGER DEFAULT 1,
+            allow_color INTEGER DEFAULT 1
         )
     """)
     cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('min_version', '1.0.0')", ())
     cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('update_url', 'https://github.com/')", ())
     cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('maintenance_mode', 'off')", ())
+    
+    # HIER HINZUGEFÜGT: Globale Standard-Werte für Feature-Switches
+    cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('global_allow_aimbot', '1')", ())
+    cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('global_allow_recoil', '1')", ())
+    cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('global_allow_color', '1')", ())
+    
     conn.commit()
     conn.close()
 
 init_db()
+
+def get_effective_features(cursor, key_code: str):
+    """Berechnet, ob ein Feature erlaubt ist (Globaler Master-Switch UND Key-Schalter müssen True sein)"""
+    cursor.execute("SELECT key, value FROM global_settings WHERE key LIKE 'global_allow_%'")
+    g_settings = {row[0]: int(row[1]) for row in cursor.fetchall()}
+    
+    g_aimbot = g_settings.get('global_allow_aimbot', 1)
+    g_recoil = g_settings.get('global_allow_recoil', 1)
+    g_color = g_settings.get('global_allow_color', 1)
+    
+    if not key_code:
+        return {"aimbot": bool(g_aimbot), "recoil": bool(g_recoil), "color_prefire": bool(g_color)}
+        
+    cursor.execute("SELECT allow_aimbot, allow_recoil, allow_color FROM keys WHERE key_code = ?", (key_code,))
+    row = cursor.fetchone()
+    if row:
+        k_aimbot, k_recoil, k_color = row
+        return {
+            "aimbot": bool(g_aimbot and k_aimbot),
+            "recoil": bool(g_recoil and k_recoil),
+            "color_prefire": bool(g_color and k_color)
+        }
+    return {"aimbot": bool(g_aimbot), "recoil": bool(g_recoil), "color_prefire": bool(g_color)}
 
 class ClientData(BaseModel):
     desktop: str
@@ -107,6 +140,12 @@ class KeyData(BaseModel):
     key_code: str
     note: str
     expiry: str
+
+class KeyFeaturesData(BaseModel):
+    key_code: str
+    allow_aimbot: int
+    allow_recoil: int
+    allow_color: int
 
 class MessageData(BaseModel):
     desktop: str
@@ -249,8 +288,23 @@ def get_keys():
 def add_key(data: KeyData):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("INSERT OR REPLACE INTO keys (key_code, note, expiry, status, bound_hwid) VALUES (?, ?, ?, 'Unbenutzt', '')", 
-                   (data.key_code, data.note, data.expiry))
+    cursor.execute("""
+        INSERT OR REPLACE INTO keys (key_code, note, expiry, status, bound_hwid, allow_aimbot, allow_recoil, allow_color) 
+        VALUES (?, ?, ?, 'Unbenutzt', '', 1, 1, 1)
+    """, (data.key_code, data.note, data.expiry))
+    conn.commit()
+    conn.close()
+    return {"status": "success"}
+
+@app.post("/api/keys/update_features")
+def update_key_features(data: KeyFeaturesData):
+    """Aktualisiert die spezifischen Feature-Schalter für einen bestimmten Lizenzschlüssel"""
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("""
+        UPDATE keys SET allow_aimbot = ?, allow_recoil = ?, allow_color = ? 
+        WHERE key_code = ?
+    """, (data.allow_aimbot, data.allow_recoil, data.allow_color, data.key_code))
     conn.commit()
     conn.close()
     return {"status": "success"}
@@ -355,6 +409,9 @@ def client_heartbeat(data: ClientData):
         license_key=excluded.license_key, last_seen=CURRENT_TIMESTAMP
     """, (data.hwid, data.desktop, data.ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.license_key))
 
+    # Features für diesen Client ermitteln
+    features = get_effective_features(cursor, data.license_key)
+
     conn.commit()
     conn.close()
     
@@ -369,7 +426,8 @@ def client_heartbeat(data: ClientData):
         "alert_message": alert_msg, 
         "mass_command": current_cmd,
         "user_command": user_cmd_obj.get("command") if user_cmd_obj else None,
-        "user_command_duration": user_cmd_obj.get("duration", 30) if user_cmd_obj else 30
+        "user_command_duration": user_cmd_obj.get("duration", 30) if user_cmd_obj else 30,
+        "features": features
     }
 
 @app.post("/verify")
@@ -422,8 +480,17 @@ def verify_license_endpoint(data: dict):
     conn.commit()
 
     expiry_date = row[2]
+    
+    # Features für diesen Key ermitteln
+    features = get_effective_features(cursor, key)
+
     conn.close()
-    return {"success": True, "message": "Access Granted", "expiry": expiry_date}
+    return {
+        "success": True, 
+        "message": "Access Granted", 
+        "expiry": expiry_date,
+        "features": features
+    }
 
 if __name__ == "__main__":
     import uvicorn
