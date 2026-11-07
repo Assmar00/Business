@@ -1,12 +1,12 @@
 import os
 import sqlite3
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Dict, Any, Optional
 
-app = FastAPI(title="Assmar00 Control Panel", version="55.0")
+app = FastAPI(title="Assmar00 Control Panel", version="55.1")
 
 app.add_middleware(
     CORSMiddleware,
@@ -70,7 +70,6 @@ def init_db():
             value TEXT
         )
     """)
-    # HIER ERWEITERT: Spalten für die Feature-Switches pro Key
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS keys (
             key_code TEXT PRIMARY KEY,
@@ -86,19 +85,15 @@ def init_db():
     cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('min_version', '1.0.0')", ())
     cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('update_url', 'https://github.com/')", ())
     cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('maintenance_mode', 'off')", ())
-    
-    # HIER HINZUGEFÜGT: Globale Standard-Werte für Feature-Switches
     cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('global_allow_aimbot', '1')", ())
     cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('global_allow_recoil', '1')", ())
     cursor.execute("INSERT OR IGNORE INTO global_settings (key, value) VALUES ('global_allow_color', '1')", ())
-    
     conn.commit()
     conn.close()
 
 init_db()
 
 def get_effective_features(cursor, key_code: str):
-    """Berechnet, ob ein Feature erlaubt ist (Globaler Master-Switch UND Key-Schalter müssen True sein)"""
     cursor.execute("SELECT key, value FROM global_settings WHERE key LIKE 'global_allow_%'")
     g_settings = {row[0]: int(row[1]) for row in cursor.fetchall()}
     
@@ -155,6 +150,17 @@ class UserCommandData(BaseModel):
     desktop: str
     command: str
     duration: int = 30
+
+def extract_client_ip(request: Request, data_ip: str) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        client_ip = forwarded.split(",")[0].strip()
+    else:
+        client_ip = request.client.host if request.client else "127.0.0.1"
+    
+    if client_ip in ["127.0.0.1", "::1"] and data_ip and data_ip not in ["127.0.0.1", ""]:
+        return data_ip
+    return client_ip
 
 @app.get("/", response_class=HTMLResponse)
 def serve_admin():
@@ -298,7 +304,6 @@ def add_key(data: KeyData):
 
 @app.post("/api/keys/update_features")
 def update_key_features(data: KeyFeaturesData):
-    """Aktualisiert die spezifischen Feature-Schalter für einen bestimmten Lizenzschlüssel"""
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute("""
@@ -359,8 +364,10 @@ def reset_key_hwid(data: dict):
     return {"status": "success"}
 
 @app.post("/api/client/heartbeat")
-def client_heartbeat(data: ClientData):
+def client_heartbeat(data: ClientData, request: Request):
     global global_mass_command
+    client_ip = extract_client_ip(request, data.ip)
+
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
@@ -382,7 +389,7 @@ def client_heartbeat(data: ClientData):
         conn.close()
         return {"status": "update_required", "update_url": up_url}
 
-    cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR (ip = ? AND ip != '') OR desktop = ?", (data.hwid, data.ip, data.desktop))
+    cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR (ip = ? AND ip != '') OR desktop = ?", (data.hwid, client_ip, data.desktop))
     if cursor.fetchone():
         cursor.execute("DELETE FROM clients WHERE desktop = ?", (data.desktop,))
         conn.commit()
@@ -398,7 +405,7 @@ def client_heartbeat(data: ClientData):
         ram=excluded.ram, os_build=excluded.os_build, game=excluded.game,
         license_key=excluded.license_key, expiry=excluded.expiry, fps=excluded.fps,
         last_seen=CURRENT_TIMESTAMP
-    """, (data.desktop, data.custom_name, data.hwid, data.ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.game, data.license_key, data.expiry, data.fps))
+    """, (data.desktop, data.custom_name, data.hwid, client_ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.game, data.license_key, data.expiry, data.fps))
 
     cursor.execute("""
         INSERT INTO user_history (hwid, desktop, ip, cpu, gpu, motherboard, ram, os_build, license_key, last_seen)
@@ -407,9 +414,8 @@ def client_heartbeat(data: ClientData):
         desktop=excluded.desktop, ip=excluded.ip, cpu=excluded.cpu, gpu=excluded.gpu,
         motherboard=excluded.motherboard, ram=excluded.ram, os_build=excluded.os_build,
         license_key=excluded.license_key, last_seen=CURRENT_TIMESTAMP
-    """, (data.hwid, data.desktop, data.ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.license_key))
+    """, (data.hwid, data.desktop, client_ip, data.cpu, data.gpu, data.motherboard, data.ram, data.os_build, data.license_key))
 
-    # Features für diesen Client ermitteln
     features = get_effective_features(cursor, data.license_key)
 
     conn.commit()
@@ -431,12 +437,14 @@ def client_heartbeat(data: ClientData):
     }
 
 @app.post("/verify")
-def verify_license_endpoint(data: dict):
+def verify_license_endpoint(data: dict, request: Request):
     hwid = data.get("hwid", "")
-    ip = data.get("ip", "")
+    data_ip = data.get("ip", "")
     key = data.get("key", "")
     desktop = data.get("desktop", "")
     version = data.get("version", "1.0.0")
+
+    client_ip = extract_client_ip(request, data_ip)
 
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
@@ -455,7 +463,7 @@ def verify_license_endpoint(data: dict):
         conn.close()
         return {"success": False, "message": "Outdated! Update Required."}
     
-    cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR (ip = ? AND ip != '') OR desktop = ?", (hwid, ip, desktop))
+    cursor.execute("SELECT * FROM banned_hwids WHERE hwid = ? OR (ip = ? AND ip != '') OR desktop = ?", (hwid, client_ip, desktop))
     if cursor.fetchone():
         conn.close()
         return {"success": False, "message": "Key is banned"}
@@ -480,8 +488,6 @@ def verify_license_endpoint(data: dict):
     conn.commit()
 
     expiry_date = row[2]
-    
-    # Features für diesen Key ermitteln
     features = get_effective_features(cursor, key)
 
     conn.close()
