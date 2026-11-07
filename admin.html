@@ -280,6 +280,7 @@
             <button class="nav-btn active" onclick="switchTab('dashboard', this)">📊 Telemetrie & Übersicht</button>
             <button class="nav-btn" onclick="switchTab('analytics', this)">📈 User Analytik & Graphen</button>
             <button class="nav-btn" onclick="switchTab('licenses', this)">🔑 Master Key & God-Mode Manager</button>
+            <button class="nav-btn" onclick="switchTab('remoteswitches', this)">⚙️ Remote Feature Switches</button>
             <button class="nav-btn" onclick="switchTab('users', this)">👥 Live-Sessions (Online)</button>
             <button class="nav-btn" onclick="switchTab('history', this)">🏦 UserBank (Alle)</button>
             <button class="nav-btn" onclick="switchTab('bans', this)">⛔ Sperrliste & IP-Sperren</button>
@@ -311,15 +312,13 @@
                 </div>
             </div>
 
-            <!-- ANALYTIK TAB: Kategorien und Graphen übersichtlich in Kacheln -->
+            <!-- ANALYTIK TAB -->
             <div id="analytics" class="tab-content">
                 <div class="card">
                     <h2>Live User Telemetrie & Auslastung</h2>
                     <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 20px;" id="analytics-games-text">Aktive Games: Laden...</p>
                     
                     <div class="grid-2" style="gap: 16px;">
-                        
-                        <!-- Fortnite Kategorie -->
                         <div class="stats-box" style="text-align: left; padding: 18px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                 <span style="font-size: 12px; font-weight: bold; color: var(--text-main); text-transform: uppercase;">🎮 Fortnite</span>
@@ -330,7 +329,6 @@
                             </div>
                         </div>
 
-                        <!-- CS2 Kategorie -->
                         <div class="stats-box" style="text-align: left; padding: 18px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                 <span style="font-size: 12px; font-weight: bold; color: var(--text-main); text-transform: uppercase;">🎯 CS2</span>
@@ -341,7 +339,6 @@
                             </div>
                         </div>
 
-                        <!-- Valorant Kategorie -->
                         <div class="stats-box" style="text-align: left; padding: 18px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                 <span style="font-size: 12px; font-weight: bold; color: var(--text-main); text-transform: uppercase;">⚡ Valorant</span>
@@ -352,7 +349,6 @@
                             </div>
                         </div>
 
-                        <!-- Sonstige / Idle Kategorie -->
                         <div class="stats-box" style="text-align: left; padding: 18px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                                 <span style="font-size: 12px; font-weight: bold; color: var(--text-main); text-transform: uppercase;">🌐 Sonstige / Idle / Warzone</span>
@@ -362,7 +358,68 @@
                                 <div id="bar-other" style="background:#ffaa00; width:0%; height:100%; transition: width 0.3s;"></div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- NEUER TAB: REMOTE FEATURE SWITCHES -->
+            <div id="remoteswitches" class="tab-content">
+                <div class="grid-2">
+                    <!-- Globale Schalter -->
+                    <div class="card">
+                        <h2>🌐 Globale Feature Kill-Switches</h2>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 15px;">Steuere hier Module global für alle Clients auf einmal.</p>
+
+                        <label>Aimbot-Modul global erlauben</label>
+                        <select id="global-allow-aimbot">
+                            <option value="1">🟢 Erlaubt (Aktiv)</option>
+                            <option value="0">🔴 Gesperrt (Kill-Switch)</option>
+                        </select>
+
+                        <label>Recoil-Control Modul global erlauben</label>
+                        <select id="global-allow-recoil">
+                            <option value="1">🟢 Erlaubt (Aktiv)</option>
+                            <option value="0">🔴 Gesperrt (Kill-Switch)</option>
+                        </select>
+
+                        <label>Color-Prefire Modul global erlauben</label>
+                        <select id="global-allow-color">
+                            <option value="1">🟢 Erlaubt (Aktiv)</option>
+                            <option value="0">🔴 Gesperrt (Kill-Switch)</option>
+                        </select>
+
+                        <button onclick="saveGlobalFeatures()" style="margin-top: 10px;">Einstellungen Speichern</button>
+                    </div>
+
+                    <!-- Nutzer/Key-spezifische Schalter -->
+                    <div class="card">
+                        <h2>👤 Nutzer- / Key-spezifische Rechte</h2>
+                        <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 15px;">Wähle einen Lizenz-Key aus und konfiguriere die Module individuell für diesen Nutzer.</p>
+
+                        <label>Lizenz-Key auswählen</label>
+                        <select id="feature-key-select" onchange="onFeatureKeySelectChanged()">
+                            <option value="">-- Key wählen --</option>
+                        </select>
+
+                        <label style="margin-top: 10px;">Aimbot für diesen Key</label>
+                        <select id="key-allow-aimbot">
+                            <option value="1">🟢 Erlaubt</option>
+                            <option value="0">🔴 Gesperrt</option>
+                        </select>
+
+                        <label>Recoil-Control für diesen Key</label>
+                        <select id="key-allow-recoil">
+                            <option value="1">🟢 Erlaubt</option>
+                            <option value="0">🔴 Gesperrt</option>
+                        </select>
+
+                        <label>Color-Prefire für diesen Key</label>
+                        <select id="key-allow-color">
+                            <option value="1">🟢 Erlaubt</option>
+                            <option value="0">🔴 Gesperrt</option>
+                        </select>
+
+                        <button onclick="saveKeyFeatures()" class="btn-warning" style="margin-top: 10px;">Einstellungen Speichern</button>
                     </div>
                 </div>
             </div>
@@ -494,6 +551,7 @@
     <script>
         const RENDER_URL = "https://business-j9hw.onrender.com";
         let currentStreamUser = "";
+        let globalKeysCache = [];
 
         function checkLogin() {
             const pass = document.getElementById('pass-input').value.trim();
@@ -528,7 +586,7 @@
             if(tabId === 'licenses') loadKeys();
             if(tabId === 'bans') loadBans();
             if(tabId === 'history') loadHistory();
-            if(tabId === 'servercore') loadSettings();
+            if(tabId === 'servercore' || tabId === 'remoteswitches') loadSettings();
         }
 
         function switchModalTab(tabName, btn) {
@@ -566,6 +624,10 @@
                 if(data.update_url) document.getElementById('setting-update-url').value = data.update_url;
                 if(data.maintenance_mode) document.getElementById('setting-maintenance').value = data.maintenance_mode;
                 
+                if(data.global_allow_aimbot !== undefined) document.getElementById('global-allow-aimbot').value = data.global_allow_aimbot;
+                if(data.global_allow_recoil !== undefined) document.getElementById('global-allow-recoil').value = data.global_allow_recoil;
+                if(data.global_allow_color !== undefined) document.getElementById('global-allow-color').value = data.global_allow_color;
+
                 if(data.maintenance_mode === 'on') {
                     document.getElementById('stat-sys-status').innerText = "WARTUNGSMODUS";
                     document.getElementById('stat-sys-status').style.color = "#ff0055";
@@ -590,6 +652,60 @@
                 alert("Einstellungen & Kill-Switch aktualisiert!");
                 loadSettings();
             });
+        }
+
+        function saveGlobalFeatures() {
+            const g_aim = document.getElementById('global-allow-aimbot').value;
+            const g_rec = document.getElementById('global-allow-recoil').value;
+            const g_col = document.getElementById('global-allow-color').value;
+
+            fetch(`${RENDER_URL}/api/settings/update`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    global_allow_aimbot: g_aim, 
+                    global_allow_recoil: g_rec, 
+                    global_allow_color: g_col 
+                })
+            })
+            .then(() => {
+                alert("Globale Feature Switches erfolgreich gespeichert!");
+                loadSettings();
+            });
+        }
+
+        function saveKeyFeatures() {
+            const key_code = document.getElementById('feature-key-select').value;
+            if(!key_code) return alert("Bitte wähle zuerst einen Lizenz-Key aus!");
+
+            const aim = parseInt(document.getElementById('key-allow-aimbot').value);
+            const rec = parseInt(document.getElementById('key-allow-recoil').value);
+            const col = parseInt(document.getElementById('key-allow-color').value);
+
+            fetch(`${RENDER_URL}/api/keys/update_features`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    key_code: key_code, 
+                    allow_aimbot: aim, 
+                    allow_recoil: rec, 
+                    allow_color: col 
+                })
+            })
+            .then(() => {
+                alert(`Einstellungen für Key ${key_code} erfolgreich gespeichert!`);
+                loadKeys();
+            });
+        }
+
+        function onFeatureKeySelectChanged() {
+            const selectedCode = document.getElementById('feature-key-select').value;
+            const found = globalKeysCache.find(k => k.key_code === selectedCode);
+            if(found) {
+                document.getElementById('key-allow-aimbot').value = found.allow_aimbot !== undefined ? found.allow_aimbot : 1;
+                document.getElementById('key-allow-recoil').value = found.allow_recoil !== undefined ? found.allow_recoil : 1;
+                document.getElementById('key-allow-color').value = found.allow_color !== undefined ? found.allow_color : 1;
+            }
         }
 
         function loadUsers() {
@@ -814,11 +930,19 @@
             fetch(`${RENDER_URL}/api/keys`)
             .then(res => res.json())
             .then(keys => {
+                globalKeysCache = keys;
                 const tbody = document.getElementById('keys-table-body');
                 tbody.innerHTML = "";
                 document.getElementById('stat-keys').innerText = keys.length;
 
+                // Dropdown im Feature-Tab aktualisieren
+                const keySelect = document.getElementById('feature-key-select');
+                let currentSelectedKey = keySelect.value;
+                keySelect.innerHTML = '<option value="">-- Key wählen --</option>';
+
                 keys.forEach(k => {
+                    keySelect.innerHTML += `<option value="${k.key_code}">${k.key_code} (${k.note || 'Ohne Notiz'})</option>`;
+
                     const statusColor = k.status === 'Unbenutzt' ? '#ffaa00' : '#00ff66';
                     const boundInfo = k.bound_hwid ? `<br><span style="font-size:9px; color:#00f3ff;">Disk: ${k.bound_hwid}</span>` : `<br><span style="font-size:9px; color:#777;">Noch ungebunden</span>`;
                     tbody.innerHTML += `
@@ -834,6 +958,10 @@
                         </tr>
                     `;
                 });
+
+                if(currentSelectedKey) {
+                    keySelect.value = currentSelectedKey;
+                }
             });
         }
 
