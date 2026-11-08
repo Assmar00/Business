@@ -255,7 +255,6 @@ def ban_user(data: dict):
             target_ban_hwid = db_hwid if db_hwid else desktop
             cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (target_ban_hwid, db_ip, desktop))
             
-            # Wenn der User einen Key hat, löschen wir den auch
             if db_key:
                 cursor.execute("DELETE FROM keys WHERE key_code = ?", (db_key,))
         else:
@@ -266,7 +265,6 @@ def ban_user(data: dict):
         cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (hwid, ip, ""))
     
     elif key:
-        # NEU: Key direkt bannen (wird als HWID in der Banned-Tabelle gespeichert)
         cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (key, "", "KEY_BAN"))
         cursor.execute("DELETE FROM keys WHERE key_code = ?", (key,))
     
@@ -279,11 +277,26 @@ def ban_user(data: dict):
 
 @app.post("/api/admin/unban_user")
 def unban_user(data: dict):
-    hwid = data.get("hwid")
+    hwid = data.get("hwid", "")
+    if not hwid:
+        return {"status": "error", "message": "Keine HWID übergeben"}
+
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    # Sucht in ALLEN Spalten, damit garantiert alles entbannt wird
+
     cursor.execute("DELETE FROM banned_hwids WHERE hwid = ? OR ip = ? OR desktop = ?", (hwid, hwid, hwid))
+    cursor.execute("DELETE FROM banned_hwids WHERE hwid LIKE ? OR ip LIKE ? OR desktop LIKE ?", (f"%{hwid}%", f"%{hwid}%", f"%{hwid}%"))
+
+    if ":" in hwid:
+        desktop_part = hwid.split(":")[-1].strip()
+        cursor.execute("DELETE FROM banned_hwids WHERE hwid LIKE ? OR desktop LIKE ?", (f"%{desktop_part}%", f"%{desktop_part}%"))
+        
+    if "\\" in hwid:
+        parts = hwid.split("\\")
+        for part in parts:
+            if len(part) > 5: 
+                cursor.execute("DELETE FROM banned_hwids WHERE hwid LIKE ?", (f"%{part}%",))
+
     conn.commit()
     conn.close()
     return {"status": "unbanned"}
