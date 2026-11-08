@@ -242,22 +242,34 @@ def ban_user(data: dict):
     hwid = data.get("hwid")
     ip = data.get("ip", "")
     target_val = data.get("target")
+    key = data.get("key")
 
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
 
     if desktop:
-        cursor.execute("SELECT hwid, ip FROM clients WHERE desktop = ?", (desktop,))
+        cursor.execute("SELECT hwid, ip, license_key FROM clients WHERE desktop = ?", (desktop,))
         row = cursor.fetchone()
         if row:
-            db_hwid, db_ip = row
+            db_hwid, db_ip, db_key = row
             target_ban_hwid = db_hwid if db_hwid else desktop
             cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (target_ban_hwid, db_ip, desktop))
+            
+            # Wenn der User einen Key hat, löschen wir den auch
+            if db_key:
+                cursor.execute("DELETE FROM keys WHERE key_code = ?", (db_key,))
         else:
             cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (desktop, ip, desktop))
         cursor.execute("DELETE FROM clients WHERE desktop = ?", (desktop,))
+    
     elif hwid:
         cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (hwid, ip, ""))
+    
+    elif key:
+        # NEU: Key direkt bannen (wird als HWID in der Banned-Tabelle gespeichert)
+        cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (key, "", "KEY_BAN"))
+        cursor.execute("DELETE FROM keys WHERE key_code = ?", (key,))
+    
     elif target_val:
         cursor.execute("INSERT OR REPLACE INTO banned_hwids (hwid, ip, desktop) VALUES (?, ?, ?)", (target_val, target_val, target_val))
 
@@ -270,6 +282,7 @@ def unban_user(data: dict):
     hwid = data.get("hwid")
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
+    # Sucht in ALLEN Spalten, damit garantiert alles entbannt wird
     cursor.execute("DELETE FROM banned_hwids WHERE hwid = ? OR ip = ? OR desktop = ?", (hwid, hwid, hwid))
     conn.commit()
     conn.close()
